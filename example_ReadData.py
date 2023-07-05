@@ -14,8 +14,8 @@ if __name__ == '__main__':
     # initialize some variables
     info_printed_once = False
     start_logging = False
-    show_print = True
-    sleep_in_seconds = 0.2
+    show_print = False
+    sleep_in_seconds = 0.002
 
     HIGHLEVEL = 0xee
     LOWLEVEL  = 0xff
@@ -146,7 +146,7 @@ if __name__ == '__main__':
             np.savetxt("logged_data/rpy.csv", rpy_ar, delimiter=";")
 
             temperature_ar = np.asarray(temperature_ar)
-            np.savetxt("logged_data/emperature.csv", temperature_ar, delimiter=";")
+            np.savetxt("logged_data/temperature.csv", temperature_ar, delimiter=";")
             
             sys.exit(0)
      
