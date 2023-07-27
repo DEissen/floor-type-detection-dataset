@@ -4,8 +4,8 @@ import open3d as o3d
 # not needed for new measurement anymore, as data is stored directly in correct format in the meantime
 
 
-def convert_txt_to_pcd(measurement_name, filename_without_type, xyz_only=False, add_direction_points=False):
-    y = np.genfromtxt(f"{measurement_name}/{filename_without_type}.txt",
+def convert_txt_to_pcd(measurement_path, filename_without_type, xyz_only=False, add_direction_points=False):
+    y = np.genfromtxt(f"{measurement_path}/{filename_without_type}.txt",
                       delimiter=',', dtype=np.float32)
 
     # optionally transform to xyz only (without rgb)
@@ -34,21 +34,21 @@ def convert_txt_to_pcd(measurement_name, filename_without_type, xyz_only=False, 
     rgb_type = " F"
     rgb_count = " 1"
     if xyz_only:
-        rgb = ""
+        rgb = "" 
         rgb_size = ""
         rgb_type = ""
         rgb_count = ""
 
     pcd_file_header = f"# .PCD v0.7 - Point Cloud Data file format\nVERSION 0.7\nFIELDS x y z{rgb}\nSIZE 4 4 4{rgb_size}\nTYPE F F F{rgb_type}\nCOUNT 1 1 1{rgb_count}\nWIDTH {length}\nHEIGHT 1\nVIEWPOINT 0 0 0 1 0 0 0\nPOINTS {length}\nDATA ascii"
 
-    np.savetxt(f"{measurement_name}/{filename_without_type}.pcd", y, delimiter=" ",
+    np.savetxt(f"{measurement_path}/{filename_without_type}.pcd", y, delimiter=" ",
                fmt=["%.10f", "%.10f", "%.10f", "%.10e"], comments="", header=pcd_file_header)
 
 
-def open_point_cloud(measurement_name, filename_without_type, print_details=False):
+def open_point_cloud(measurement_path, filename_without_type, print_details=False):
     # load point cloud
     pcd = o3d.io.read_point_cloud(
-        f"{measurement_name}/{filename_without_type}.pcd")
+        f"{measurement_path}/{filename_without_type}.pcd")
 
     # optionally print details about the loaded point cloud
     if print_details:
@@ -58,10 +58,10 @@ def open_point_cloud(measurement_name, filename_without_type, print_details=Fals
 
 
 if __name__ == "__main__":
-    measurement_name = "weiter_weg"
-    filename_without_type = "PointCloud_16-37-40"
+    measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\Point_Clouds\kurz_vor_Heizung"
+    filename_without_type = "PointCloud_16-36-55"
 
-    convert_txt_to_pcd(measurement_name, filename_without_type,
+    convert_txt_to_pcd(measurement_path, filename_without_type,
                    add_direction_points=True)
 
-    open_point_cloud(measurement_name, filename_without_type, True)
+    open_point_cloud(measurement_path, filename_without_type, True)
