@@ -1,0 +1,24 @@
+{
+   "measurement_date": "25.07.2023",
+   "floor type": "tiles",
+   "time_diff_13_in_ms": {
+      "normal": 879.9604999999999,
+      "corrected": 879.9604999999999,
+      "duration": 227.18050000000002,
+      "later timestamp on": "local PC"
+   },
+   "time_diff_14_in_ms": {
+      "normal": 1693.0425,
+      "corrected": 1693.0425,
+      "duration": 200.6305,
+      "later timestamp on": "local PC"
+   },
+   "time_diff_15_in_ms": {
+      "normal": 1287.8455,
+      "corrected": 1287.8455,
+      "duration": 236.0619,
+      "later timestamp on": "local PC"
+   },
+   "starting_time": "15:03:16",
+   "end_time": "15:04:14"
+}
