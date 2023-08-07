@@ -6,11 +6,12 @@ import json
 
 def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
     """
-        Function to return the closest timestamp for each camera to the earliest timestamp of the IMU measurements.
+        Function to return the closest timestamp for each camera to the earliest possible timestamp of the IMU measurements.
+        The time diff between the timestamps of cameras and the IMU is not allowed to be bigger than 200 ms (due to 5 FPS for camera capturing) to ensure pictures belong to IMU data. 
 
         Parameters:
             - measurement_path (str): path to the measurement
-            - earliest_IMU_timestamp
+            - earliest_IMU_timestamp (datetime.datetime): timestamp to use for further calculations. If equal to "None", this function will be called recursively with an corrected IMU timestamp.
 
         Returns:
             - (dict): Dictionary containing the closest timestamps for each camera and the earliest timestamp of the IMU measurements
