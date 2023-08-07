@@ -4,12 +4,13 @@ from datetime import datetime, timedelta
 import json
 
 
-def get_synchronized_timestamps(measurement_path):
+def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
     """
         Function to return the closest timestamp for each camera to the earliest timestamp of the IMU measurements.
 
         Parameters:
             - measurement_path (str): path to the measurement
+            - earliest_IMU_timestamp
 
         Returns:
             - (dict): Dictionary containing the closest timestamps for each camera and the earliest timestamp of the IMU measurements
@@ -21,11 +22,14 @@ def get_synchronized_timestamps(measurement_path):
 
     # get measurement date first for all timestamps
     measurement_date, time_diff_data = get_data_from_info_json_for_timestamp_evaluation(
-        temp_path)
+        measurement_path)
 
-    # get the earliest timestamp of the IMU measurements
-    timestamps["IMU"] = get_earliest_timestamp_from_IMU(
-        measurement_path, measurement_date)
+    # get the earliest timestamp of the IMU measurements from files if it's not provided as function parameter
+    if earliest_IMU_timestamp == None:
+        timestamps["IMU"] = get_earliest_timestamp_from_IMU(
+            measurement_path, measurement_date)
+    else:
+        timestamps["IMU"] = earliest_IMU_timestamp
 
     # get the timestamp string for all cameras
     for root, dirs, files in os.walk(measurement_path):
@@ -43,13 +47,33 @@ def get_synchronized_timestamps(measurement_path):
         raise Exception(
             f"No camera directory present in directory {measurement_path}\nIt only contains the following dirs: {checked_dirs}")
 
-    # print statement for debugging purposes
-    for key, value in timestamps.items():
-        try:
-            print(key, value, "\twith time diff:", time_diffs[key])
-        except:
-            print(key, value)
-    
+    # # print statement for debugging purposes
+    # for key, value in timestamps.items():
+    #     try:
+    #         print(key, value, "\twith time diff:", time_diffs[key])
+    #     except:
+    #         print(key, value)
+
+    # check if max_time_diff is greater than 200 ms for any camera started, which is the sampling rate of the images (5 FPS)
+    max_time_diff = max(time_diffs.values())
+    if max_time_diff > timedelta(milliseconds=200):
+        # in earliest_IMU_timestamp was not provided as a parameter but taken from files, this is plausible as the first IMU measurement might have started too early
+        if earliest_IMU_timestamp == None:
+            print("The maximum time diff of all cameras is greater than 200 ms (sampling rate of cameras), which means earliest IMU measurement is older than earliest picture! \
+                    \nThus synchronized timestamps will be recalculated for expected first parallel IMU measurement when last camera started taking pictures.\n")
+
+            # new timestamp must be fitting to the 50 Hz capturing rate of the IMU data => thus corrected IMU timestamp must updated by time diff in 20 ms steps
+            max_time_diff_ms = round(max_time_diff.microseconds / 1000)
+            if max_time_diff_ms % 20 != 0:
+                max_time_diff_ms = max_time_diff_ms - (max_time_diff_ms % 20)
+            corrected_earliest_IMU_timestamp = timestamps["IMU"] + timedelta(
+                milliseconds=max_time_diff_ms)
+            
+            timestamps = get_synchronized_timestamps(
+                measurement_path, earliest_IMU_timestamp=corrected_earliest_IMU_timestamp)
+        else:
+            raise Exception(f"Time diff for a camera is greater than 200 ms for a corrected earliest IMU timestamp. This shouldn't be possible! Please check your data.\nResults of synchronized timestamp calculation: {time_diffs}")
+
     return timestamps
 
 
@@ -77,7 +101,8 @@ def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_
     cam_files = glob.glob(files_glob_pattern)
     for cam_file in cam_files:
         filename = cam_file.split(os.sep)[-1]
-        timestamps.append(get_timestamp_from_picture(filename, measurement_date))
+        timestamps.append(get_timestamp_from_picture(
+            filename, measurement_date))
 
     # get fitting time_diff_data for camera for reference_timestamp correction
     if camera_name == "ChinCam" or camera_name == "HeadCam":
@@ -86,25 +111,30 @@ def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_
     elif camera_name == "RightCam" or camera_name == "LeftCam":
         time_diff = time_diff_data["time_diff_14_in_ms"]["corrected"]
         later_timestamp = time_diff_data["time_diff_14_in_ms"]["later timestamp on"]
-    elif camera_name == "BellyCam": 
+    elif camera_name == "BellyCam":
         time_diff = time_diff_data["time_diff_15_in_ms"]["corrected"]
         later_timestamp = time_diff_data["time_diff_15_in_ms"]["later timestamp on"]
     else:
-        raise Exception(f"Unexpected camera name: '{camera_name}', thus execution is stopped!")
+        raise Exception(
+            f"Unexpected camera name: '{camera_name}', thus execution is stopped!")
 
     # correct reference_timestamp by using time_diff_data
     if later_timestamp == "local PC":
         # as reference timestamp is from local PC, the time_diff must be subtracted in case local PC had the later time = was in front of remote time
-        reference_timestamp = reference_timestamp - timedelta(milliseconds=time_diff)
+        reference_timestamp = reference_timestamp - \
+            timedelta(milliseconds=time_diff)
     # value "local PC (only uncorrected)" for later_timestamp means remote PC was later timestamp for corrected time_diff
     elif later_timestamp == "remote PC" or later_timestamp == "local PC (only uncorrected)":
         # as reference timestamp is from local PC, the time_diff must be added in case local PC had the later time = was behind of remote time
-        reference_timestamp = reference_timestamp + timedelta(milliseconds=time_diff)
+        reference_timestamp = reference_timestamp + \
+            timedelta(milliseconds=time_diff)
     else:
-        raise Exception(f"Unexpected value for later_timestamp: '{later_timestamp}', thus execution is stopped!")
+        raise Exception(
+            f"Unexpected value for later_timestamp: '{later_timestamp}', thus execution is stopped!")
 
-    # print statement for debugging purposes
-    print(f"Corrected IMU timestamp for {camera_name} as reference_timestamp is: ", reference_timestamp)
+    # # print statement for debugging purposes
+    # print(
+    #     f"Corrected IMU timestamp for {camera_name} as reference_timestamp is: ", reference_timestamp)
 
     return get_closest_timestamp(timestamps, reference_timestamp)
 
@@ -122,7 +152,8 @@ def get_closest_timestamp(timestamps, reference_timestamp):
             - closest_timestamp (datetime.datetime): closest timestamp
             - time_diff (datetime.timedelta): timedelta of closest_timestamp to reference_timestamp
     """
-    closest_timestamp = min(timestamps, key=lambda x: abs(x - reference_timestamp))
+    closest_timestamp = min(
+        timestamps, key=lambda x: abs(x - reference_timestamp))
     time_diff = abs(closest_timestamp - reference_timestamp)
     return closest_timestamp, time_diff
 
@@ -235,4 +266,7 @@ if __name__ == "__main__":
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, os.pardir, "temp")
 
-    get_synchronized_timestamps(temp_path)
+    timestamps = get_synchronized_timestamps(temp_path)
+    
+    for key, value in timestamps.items():
+        print(key, value)
