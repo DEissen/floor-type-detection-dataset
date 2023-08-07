@@ -10,22 +10,121 @@ def get_synchronized_timestamps(measurement_path):
 
         Parameters:
             - measurement_path (str): path to the measurement
+
+        Returns:
+            - (dict): Dictionary containing the closest timestamps for each camera and the earliest timestamp of the IMU measurements
     """
-    # struct to store all the timestamps
-    timestamps = {}
+    timestamps = {}  # struct to store all the timestamps
+    time_diffs = {}  # struct to store all time diffs
+    checked_dirs = []  # list of checked dirs for debugging info
+    camera_dir_found = False  # Flag for error detection
+
     # get measurement date first for all timestamps
-    measurement_date = get_measurement_date_from_info_json(temp_path)
+    measurement_date, time_diff_data = get_data_from_info_json_for_timestamp_evaluation(
+        temp_path)
 
     # get the earliest timestamp of the IMU measurements
     timestamps["IMU"] = get_earliest_timestamp_from_IMU(
         measurement_path, measurement_date)
 
-    # # TODO:
-    # headCam_path = os.path.join(measurement_path, "HeadCam", "*.jpg")
+    # get the timestamp string for all cameras
+    for root, dirs, files in os.walk(measurement_path):
+        for dir in dirs:
+            checked_dirs.append(dir)
+            # only further process dirs which contain "Cam" in their name
+            if "Cam" in dir:
+                camera_dir_found = True
 
-    # headCam_files = glob.glob(headCam_path)
-    # test = headCam_files[0].split(os.sep)[-1]
-    # timestamp = get_timestamp_from_picture(test, measurement_date)
+                # get closest timestamp and time_diff to corrected reference timestamp for the current camera
+                timestamps[dir], time_diffs[dir] = get_closest_timestamp_for_camera(
+                    measurement_path, dir, measurement_date, timestamps["IMU"], time_diff_data)
+
+    if not camera_dir_found:
+        raise Exception(
+            f"No camera directory present in directory {measurement_path}\nIt only contains the following dirs: {checked_dirs}")
+
+    # print statement for debugging purposes
+    for key, value in timestamps.items():
+        try:
+            print(key, value, "\twith time diff:", time_diffs[key])
+        except:
+            print(key, value)
+    
+    return timestamps
+
+
+def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_date, reference_timestamp, time_diff_data):
+    """
+        Function to return closest timestamp to the reference_timestamp considering time_diff_data for the camera.
+
+        Parameters:
+            - measurement_path (str): path to the measurement
+            - camera_name (str): name of the camera to check which is also the directory name
+            - measurement_date (datetime.datetime): date of the measurement for the timestamp
+            - reference_timestamp (datetime.datetime): reference timestamp for search
+            - time_diff_data (struct): struct containing the time_diff_data from the info.json
+
+        Returns:
+            - return values of function get_closest_timestamp()
+    """
+    # local variables
+    timestamps = []
+    time_diff = None
+    later_timestamp = None
+
+    # extract all timestamps from camera directory
+    files_glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
+    cam_files = glob.glob(files_glob_pattern)
+    for cam_file in cam_files:
+        filename = cam_file.split(os.sep)[-1]
+        timestamps.append(get_timestamp_from_picture(filename, measurement_date))
+
+    # get fitting time_diff_data for camera for reference_timestamp correction
+    if camera_name == "ChinCam" or camera_name == "HeadCam":
+        time_diff = time_diff_data["time_diff_13_in_ms"]["corrected"]
+        later_timestamp = time_diff_data["time_diff_13_in_ms"]["later timestamp on"]
+    elif camera_name == "RightCam" or camera_name == "LeftCam":
+        time_diff = time_diff_data["time_diff_14_in_ms"]["corrected"]
+        later_timestamp = time_diff_data["time_diff_14_in_ms"]["later timestamp on"]
+    elif camera_name == "BellyCam": 
+        time_diff = time_diff_data["time_diff_15_in_ms"]["corrected"]
+        later_timestamp = time_diff_data["time_diff_15_in_ms"]["later timestamp on"]
+    else:
+        raise Exception(f"Unexpected camera name: '{camera_name}', thus execution is stopped!")
+
+    # correct reference_timestamp by using time_diff_data
+    if later_timestamp == "local PC":
+        # as reference timestamp is from local PC, the time_diff must be subtracted in case local PC had the later time = was in front of remote time
+        reference_timestamp = reference_timestamp - timedelta(milliseconds=time_diff)
+    # value "local PC (only uncorrected)" for later_timestamp means remote PC was later timestamp for corrected time_diff
+    elif later_timestamp == "remote PC" or later_timestamp == "local PC (only uncorrected)":
+        # as reference timestamp is from local PC, the time_diff must be added in case local PC had the later time = was behind of remote time
+        reference_timestamp = reference_timestamp + timedelta(milliseconds=time_diff)
+    else:
+        raise Exception(f"Unexpected value for later_timestamp: '{later_timestamp}', thus execution is stopped!")
+
+    # print statement for debugging purposes
+    print(f"Corrected IMU timestamp for {camera_name} as reference_timestamp is: ", reference_timestamp)
+
+    return get_closest_timestamp(timestamps, reference_timestamp)
+
+
+def get_closest_timestamp(timestamps, reference_timestamp):
+    """
+        Function to get closest timestamp from timestamps (list) to reference_timestamp.
+        Function is based on the following post: https://stackoverflow.com/questions/32237862/find-the-closest-date-to-a-given-date
+
+        Parameters:
+            - timestamps (list): list of timestamps where closest timestamp shall be searched
+            - reference_timestamp (datetime.datetime): reference for search
+
+        Returns:
+            - closest_timestamp (datetime.datetime): closest timestamp
+            - time_diff (datetime.timedelta): timedelta of closest_timestamp to reference_timestamp
+    """
+    closest_timestamp = min(timestamps, key=lambda x: abs(x - reference_timestamp))
+    time_diff = abs(closest_timestamp - reference_timestamp)
+    return closest_timestamp, time_diff
 
 
 def get_timestamp_from_picture(filename, measurement_date):
@@ -85,7 +184,7 @@ def get_earliest_timestamp_from_IMU(measurement_path, measurement_date):
         f"No IMU measurement present in directory {measurement_path}\nIt only contains the following dirs: {checked_dirs}")
 
 
-def get_timestamp_from_timestamp_string(timestamp_string:str, measurement_date:datetime):
+def get_timestamp_from_timestamp_string(timestamp_string: str, measurement_date: datetime):
     """
         Function to convert a timestamp string in the format "hh_mm_ss_xxx" (where xxx are the milliseconds) to a datetime object for further processing.
 
@@ -108,21 +207,27 @@ def get_timestamp_from_timestamp_string(timestamp_string:str, measurement_date:d
     return measurement_date + timestamp
 
 
-def get_measurement_date_from_info_json(measurement_path):
+def get_data_from_info_json_for_timestamp_evaluation(measurement_path):
     """
-        Function to get measurement date from info.json file.
+        Function to get data from info.json file needed for timestamp evaluation.
 
         Parameters:
             - measurement_path (str): path to the measurement
 
         Returns:
-            - (datetime.datetime): datetime object of the date from the info.json file
+            - measurement_date (datetime.datetime): datetime object of the date from the info.json file
+            - time_diff_data (struct): strut containing the time diff data
     """
     json_path = os.path.join(measurement_path, "info.json")
 
     with open(json_path, "r") as f:
         info_struct = json.load(f)
-        return datetime.strptime(info_struct["measurement_date"], "%d.%m.%Y")
+        measurement_date = datetime.strptime(
+            info_struct["measurement_date"], "%d.%m.%Y")
+        time_diff_data = {"time_diff_13_in_ms": info_struct["time_diff_13_in_ms"],
+                          "time_diff_14_in_ms": info_struct["time_diff_14_in_ms"],
+                          "time_diff_15_in_ms": info_struct["time_diff_15_in_ms"]}
+        return measurement_date, time_diff_data
 
 
 if __name__ == "__main__":
