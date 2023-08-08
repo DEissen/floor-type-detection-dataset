@@ -4,6 +4,7 @@ import os
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement
+from data_preparation.image_preparation import remove_obsolete_images
 
 
 def main(measurement_path):
@@ -21,8 +22,11 @@ def main(measurement_path):
 
     timestamps = get_synchronized_timestamps(temp_path)
 
-    for key, value in timestamps.items():
-        print(key, value)
+    for key, timestamp in timestamps.items():
+        print(f"Starting timestamp for {key} is {timestamp}")
+        if "Cam" in key:
+            remove_obsolete_images(temp_path, key, timestamp)
+
 
 
 if __name__ == "__main__":
