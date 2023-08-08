@@ -1,6 +1,13 @@
 import numpy as np
 import os
+import glob
+from datetime import datetime, timedelta
 
+# differentiation needed to support execution of file directly and to allow function to be included by data_preparation_main.py
+if __name__ == "__main__":
+    from timestamp_evaluation import get_timestamp_from_timestamp_string
+else:
+    from data_preparation.timestamp_evaluation import get_timestamp_from_timestamp_string
 
 class TimeseriesDownsamplingForWholeMeasurement():
     """
@@ -221,6 +228,59 @@ class TimeseriesDownsamplingForWholeMeasurement():
             np.savetxt(os.path.join(
                 self.measurement_path, sensor, filename), array_for_storing, delimiter=";")
 
+def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
+    """
+        Function to remove data points in the first measurement of sensor_name in measurement_path which are before reference_timestamp.
+        NOTE: Must be called after downsampling was performed!!!
+        Execution will be aborted if reference_timestamp is before the earliest available data point or when reference_timestamp is not
+        located in the first measurement file.
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - sensor_name (str): Name of the sensor to perform the function for
+            - reference_timestamp (datetime.datetime): Timestamp to use as reference for data removal
+    """
+    # extract measurement date from reference_timestamp for get_timestamp_from_timestamp_string()
+    measurement_date = datetime(year=reference_timestamp.year,
+                                month=reference_timestamp.month, day=reference_timestamp.day)
+    
+    # get filename of first file in the dir
+    glob_pattern = os.path.join(measurement_path, sensor_name, "*.csv")
+    files = glob.glob(glob_pattern)
+    first_filename = files[0].split(os.sep)[-1]
+
+    # extract timestamp string from filename and convert it to datetime object
+    earliest_timestamp_string = first_filename[:-4]
+    earliest_timestamp = get_timestamp_from_timestamp_string(earliest_timestamp_string, measurement_date)
+
+    if earliest_timestamp > reference_timestamp:
+        raise Exception(f"Reference timestamp is before earliest available timestamp. Thus execution will be aborted.")
+
+    # load data from earliest measurement
+    filename = os.path.join(measurement_path, sensor_name, first_filename)
+    data = np.genfromtxt(filename, delimiter=';')
+
+    # get time diff between timestamps
+    time_diff = reference_timestamp - earliest_timestamp
+    # calculate needed shift in file
+    shift = int(time_diff.microseconds / 20000)
+
+    if shift > np.shape(data)[0]:
+        # shift is not within earliest measurement file, thus execution is aborted with an Exception
+        raise Exception(f"The needed shift of {shift} is not within the earliest measurement. Thus execution will be aborted.")
+    elif shift > 0:
+        # drop obsolete data when mandatory 
+        print(f"Obsolete data for sensor '{sensor_name}' will be removed (first {shift} data points will be removed).")
+        data = data[shift:]
+
+        # store data corrected timestamp as name
+        np.savetxt(os.path.join(measurement_path, sensor_name, datetime.strftime(reference_timestamp, "%H_%M_%S_%f")[:-3] + ".csv"),
+                    data, delimiter=";")
+        
+        # delete old file
+        os.remove(os.path.join(measurement_path, sensor_name, first_filename))
+    else:
+        print(f"No update needed for sensor '{sensor_name}'")
 
 if __name__ == "__main__":
     # create path to temp directory
@@ -230,3 +290,7 @@ if __name__ == "__main__":
     timeseries_downsampler = TimeseriesDownsamplingForWholeMeasurement(
         temp_path)
     timeseries_downsampler.start_downsampling()
+
+    testdate = datetime(year=2023, month=7, day=25, hour=15,
+                        minute=3, second=16, microsecond=958000)
+    remove_obsolete_values(temp_path, "bodyHeight", testdate)
