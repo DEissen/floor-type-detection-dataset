@@ -23,7 +23,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
             Init method stores measurement_path in a member an creates member list of sensors usable for downsampling.
 
             Parameters:
-                - measurement_path (str): Path to the measurement to which downsampling shall be applied 
+                - measurement_path (str): Path to the measurement to which downsampling shall be applied
         """
         self.measurement_path = measurement_path
 

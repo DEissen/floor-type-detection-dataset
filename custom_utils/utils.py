@@ -1,6 +1,8 @@
 import os
 from distutils.dir_util import copy_tree
 import shutil
+import glob
+import numpy as np
 
 def clean_temp_dir():
     """
@@ -27,3 +29,20 @@ def copy_measurement_to_temp(measurement_path):
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, os.pardir, "temp")
     copy_tree(measurement_path, temp_path)
+
+def load_complete_IMU_measurement(measurement_path, sensor):
+    """
+        Function to load a complete IMU measurement for sensor from measurement_path in one array.
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - sensor (str): Name of the sensor to load the data for
+    """
+    files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
+    filename_list = glob.glob(files_glob_pattern)
+    
+    data_list = []
+    for file in filename_list:
+        data_list.extend(np.genfromtxt(file, delimiter=';'))
+
+    return np.asarray(data_list)
