@@ -17,9 +17,11 @@ def plot_IMU_data(measurement_path, sensor_name, filename, start_of_plot=None, e
 
 
 if __name__ == "__main__":
-    measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_49"
+    measurement_path = r"D:\git_repos\FA_Dataset\temp"
     # different measurements names to copy: accelerometer, bodyHeight, footForce, footRaiseHeight, gyroscope, mode, rpy, temperature, velocity, yawSpeed
-    sensor = "footForce"
-    filename = "12_50_34_663"
+    sensor = "yawSpeed"
+    filename1 = "15_03_16_158"
+    filename2 = "new_" + filename1
 
-    plot_IMU_data(measurement_path, sensor, filename)
+    plot_IMU_data(measurement_path, sensor, filename1)
+    plot_IMU_data(measurement_path, sensor, filename2)
