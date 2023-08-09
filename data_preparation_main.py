@@ -9,10 +9,13 @@ from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
 
 
-def main(measurement_path):
+def data_preparation_main(measurement_path):
     # # clear the temp dir and copy the desired measurement to it afterwards
     clean_temp_dir()
     copy_measurement_to_temp(measurement_path)
+
+    # uncomment to check how data looks before preparation step
+    # visualize_result()
 
     # create path to temp directory
     file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,18 +35,22 @@ def main(measurement_path):
         elif "Cam" in key:
             remove_obsolete_images(temp_path, key, timestamp)
 
-def visualize_intermediate_result():
+    # uncomment to check how data looks after preparation step
+    # visualize_result()
+
+
+def visualize_result():
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, "temp")
 
-    data = load_complete_IMU_measurement(temp_path, "accelerometer") # determines which sensor is used for visualization
+    # determines which sensor is used for visualization
+    data = load_complete_IMU_measurement(temp_path, "accelerometer")
     show_all_images_afterwards_including_imu_data(temp_path, data)
     plot_IMU_data(data)
 
 
 if __name__ == "__main__":
-    measurement_path = "./testdata/measurement_25_07__15_03"
+    # measurement_path = "./testdata/measurement_25_07__15_03"
+    measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
 
-    main(measurement_path)
-
-    visualize_intermediate_result()
+    data_preparation_main(measurement_path)

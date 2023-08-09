@@ -3,6 +3,7 @@ from distutils.dir_util import copy_tree
 import shutil
 import glob
 import numpy as np
+import zipfile
 
 def clean_temp_dir():
     """
@@ -21,14 +22,27 @@ def clean_temp_dir():
 
 def copy_measurement_to_temp(measurement_path):
     """
-        Util function to copy a measurement from measurement_path to the temp/ dir in the repository for further preprocessing
+        Util function to copy a measurement from measurement_path to the temp/ dir in the repository for further preprocessing.
+        If measurement_path points to a zip file, the zip file will be extracted to temp/ instead.
         
         Parameters:
-            - measurement_path: Path to the directory of the measurement which includes all the sensor data and the info.json file
+            - measurement_path: Path to the directory of the measurement which includes all the sensor data and the info.json file.
+                                NOTE: If measurement_path ends with ".zip", this file will be extracted instead.
     """
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, os.pardir, "temp")
-    copy_tree(measurement_path, temp_path)
+    
+    print(f"{measurement_path} will be copied/ extracted to {temp_path}")
+    
+    if ".zip" == measurement_path[-4:]:
+        # unzip zip file to temp path if measurement path point to zip file
+        with zipfile.ZipFile(measurement_path, "r") as zip_file:
+            zip_file.extractall(temp_path)
+    else:
+        # if measurement path contains files, directly copy the measurement path content
+        copy_tree(measurement_path, temp_path)
+
+    print(f"Files were successfully copied to {temp_path}")
 
 def load_complete_IMU_measurement(measurement_path, sensor):
     """
