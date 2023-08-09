@@ -4,7 +4,7 @@ import os
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, load_complete_IMU_measurement
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values
-from data_preparation.image_preparation import remove_obsolete_images
+from data_preparation.image_preparation import remove_obsolete_images_at_beginning
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
 
@@ -33,7 +33,7 @@ def data_preparation_main(measurement_path):
             for sensor in timeseries_downsampler.timeseries_sensors:
                 remove_obsolete_values(temp_path, sensor, timestamp)
         elif "Cam" in key:
-            remove_obsolete_images(temp_path, key, timestamp)
+            remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
     # uncomment to check how data looks after preparation step
     # visualize_result()
@@ -51,6 +51,7 @@ def visualize_result():
 
 if __name__ == "__main__":
     # measurement_path = "./testdata/measurement_25_07__15_03"
-    measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
+    # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
+    measurement_path = r"C:\Users\Dominik\Downloads\updated_measurement_25_07__12_58.zip"
 
     data_preparation_main(measurement_path)

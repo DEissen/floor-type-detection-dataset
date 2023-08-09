@@ -69,11 +69,12 @@ def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
                 max_time_diff_ms = max_time_diff_ms - (max_time_diff_ms % 20)
             corrected_earliest_IMU_timestamp = timestamps["IMU"] + timedelta(
                 milliseconds=max_time_diff_ms)
-            
+
             timestamps = get_synchronized_timestamps(
                 measurement_path, earliest_IMU_timestamp=corrected_earliest_IMU_timestamp)
         else:
-            raise Exception(f"Time diff for a camera is greater than 200 ms for a corrected earliest IMU timestamp. This shouldn't be possible! Please check your data.\nResults of synchronized timestamp calculation: {time_diffs}")
+            raise Exception(
+                f"Time diff for a camera is greater than 200 ms for a corrected earliest IMU timestamp. This shouldn't be possible! Please check your data.\nResults of synchronized timestamp calculation: {time_diffs}")
 
     return timestamps
 
@@ -106,13 +107,13 @@ def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_
             filename, measurement_date))
 
     # get fitting time_diff_data for camera for reference_timestamp correction
-    if camera_name == "ChinCam" or camera_name == "HeadCam":
+    if "ChinCam" in camera_name or "HeadCam" in camera_name:
         time_diff = time_diff_data["time_diff_13_in_ms"]["corrected"]
         later_timestamp = time_diff_data["time_diff_13_in_ms"]["later timestamp on"]
-    elif camera_name == "RightCam" or camera_name == "LeftCam":
+    elif "RightCam" in camera_name or "LeftCam" in camera_name:
         time_diff = time_diff_data["time_diff_14_in_ms"]["corrected"]
         later_timestamp = time_diff_data["time_diff_14_in_ms"]["later timestamp on"]
-    elif camera_name == "BellyCam":
+    elif "BellyCam" in camera_name:
         time_diff = time_diff_data["time_diff_15_in_ms"]["corrected"]
         later_timestamp = time_diff_data["time_diff_15_in_ms"]["later timestamp on"]
     else:
@@ -268,6 +269,6 @@ if __name__ == "__main__":
     temp_path = os.path.join(file_dir, os.pardir, "temp")
 
     timestamps = get_synchronized_timestamps(temp_path)
-    
+
     for key, value in timestamps.items():
         print(key, value)
