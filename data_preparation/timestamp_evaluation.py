@@ -177,9 +177,11 @@ def get_timestamp_from_picture(filename, measurement_date):
         timestamp_string = filename[5:-4]
     elif filename[0] == "R":
         timestamp_string = filename[6:-4]
+    elif filename[0] == "0" or filename[0] == "1" or filename[0] == "2" or filename[0] == "3" or filename[0] == "4" or filename[0] == "5" or filename[0] == "6" or filename[0] == "7" or filename[0] == "8" or filename[0] == "9":
+        timestamp_string = filename[:-4]
     else:
         raise Exception(
-            f"Unexpected picture filename in timestamp evaluation!\n'{filename}' does not start with 'L' or 'R'!")
+            f"Unexpected picture filename in timestamp evaluation!\n'{filename}' does not start with 'L' or 'R' or a number!")
 
     return get_timestamp_from_timestamp_string(timestamp_string, measurement_date)
 
