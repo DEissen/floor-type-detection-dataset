@@ -17,7 +17,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
             Downsampling of the timeseries/ IMU data is necessary, as the data is polled in parallel for all sensors with ~100 Hz from the Unitree Go1. 
             The IMU in the Unitree Go1 itself provides the data with 50 Hz. As the polling frequency is implemented by using time.sleep(1/100),
             the real polling frequency < 100 Hz as the data capturing itself also needs some time. In order prevent missing any value of the 50 Hz signal,
-            it's polled with the double frequency. As a result roughly every 7th value is only captured once instead of two times.
+            it's polled with the double frequency. As a result in some measurements even every 7th value is only captured once instead of two times.
             As a result, the captured data shall be downsampled to a 50 Hz signal by keeping single occurring values and reducing double occurring values to a single value.
 
         Usage:
