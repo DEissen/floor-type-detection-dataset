@@ -95,7 +95,8 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
 
     # initialize variables to search for camera with earliest last image (no camera should contain older images than this one)
     camera_earliest_last_image = ""
-    earliest_last_image_timestamp = starting_timestamp + timedelta(days=10)  # will definitely be later than any other timestamp
+    # will definitely be later than any other timestamp
+    earliest_last_image_timestamp = starting_timestamp + timedelta(days=10)
 
     # perform renaming of images for all cameras
     for camera in cameras_list:
@@ -133,6 +134,7 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
 
         Returns:
             - previous_timestamp_new_files (datetime.datetime): Timestamp of the last image
+            - list_missing_timestamp_strings (list): List of all timestamp strings which are missing for this camera
     """
     # get all currently available files = with old timestamp
     glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
@@ -152,6 +154,8 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
     previous_timestamp_present_files = None
     # variable to store timestamp of previous file for the new renamed files
     previous_timestamp_new_files = starting_timestamp
+    # list to store strings of all timestamps that are missing
+    list_missing_timestamp_strings = []
 
     # copy every file and name the new file with new timestamp
     for index, cam_file in enumerate(files_with_old_timestamp):
@@ -171,17 +175,24 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
         passed_capturing_periods_between_images = int(
             time_diff.microseconds/180000)
 
-        # TODO: log timestamp of missing file due to this!
-        if passed_capturing_periods_between_images > 2:
-            raise Exception(f"Before the image with the timestamp '{get_timestamp_string_from_timestamp(current_timestamp)}' at least two images are missing. This must be checked in the raw data!",
-                            f"Details:\n\tcurrent timestamp:'{get_timestamp_string_from_timestamp(current_timestamp)}'\n\tprevious timestamp:'{get_timestamp_string_from_timestamp(previous_timestamp_present_files)}'")
-        elif passed_capturing_periods_between_images > 1:
-            print(f"Before the image with the timestamp '{get_timestamp_string_from_timestamp(current_timestamp)}' at least one image is missing. This should be checked in the raw data!",
-                  f"Details:\n\tcurrent timestamp:'{get_timestamp_string_from_timestamp(current_timestamp)}'\n\tprevious timestamp:'{get_timestamp_string_from_timestamp(previous_timestamp_present_files)}'")
-        elif passed_capturing_periods_between_images == 0 and index != 0:
-            # TODO: Check whether it might be necessary to keep all files, especially at beginning of measurement!
-            print(
-                f"Image with timestamp {get_timestamp_string_from_timestamp(current_timestamp)} is second images in this period! Only this file will be stored!")
+        if passed_capturing_periods_between_images > 1:
+            # in this case images are missing => log timestamp of missing images
+            for i in range(1, passed_capturing_periods_between_images):
+                missing_timestamp_string = get_timestamp_string_from_timestamp(previous_timestamp_new_files +
+                                                                               i * timedelta(milliseconds=200))
+                list_missing_timestamp_strings.append(missing_timestamp_string)
+        elif passed_capturing_periods_between_images == 0:
+            # in this case there is no period passed between the images
+            if index == 0:
+                # this is intended for the first image => do nothing in this case
+                pass
+            elif time_diff > timedelta(milliseconds=150):
+                # if the time diff is smaller than 180 ms, but still bigger than 150 ms, the image shall be kept
+                passed_capturing_periods_between_images = 1
+            else:
+                # otherwise passed_capturing_periods_between_images will stay 0 which leads to overwriting the previous images which shall be logged
+                print(
+                    f"For camera {camera_name} image with timestamp {get_timestamp_string_from_timestamp(current_timestamp)} is second images in this period! Only this file will be stored!")
 
         # get new filename based previous_timestamp_new_files
         timestamp_for_new_file = previous_timestamp_new_files + \
@@ -202,8 +213,12 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
         # remove old file
         os.remove(cam_file)
 
-    print(
-        f"Images for camera '{camera_name}' are now renamed starting at timestamp {get_timestamp_string_from_timestamp(starting_timestamp)}")
+    # print(
+    #     f"Images for camera '{camera_name}' are now renamed starting at timestamp {get_timestamp_string_from_timestamp(starting_timestamp)}")
+    if list_missing_timestamp_strings != []:
+        print(
+            f"The following timestamps are missing for camera {camera_name}: {list_missing_timestamp_strings}")
+
     return previous_timestamp_new_files
 
 
@@ -225,7 +240,6 @@ def remove_obsolete_images_at_end(measurement_path, camera, last_allowed_timesta
     files_glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
     cam_files = glob.glob(files_glob_pattern)
 
-
     # iterate over all files and check if file has to be removed
     for index, cam_file in enumerate(cam_files):
         # get timestamp of file
@@ -236,7 +250,6 @@ def remove_obsolete_images_at_end(measurement_path, camera, last_allowed_timesta
         if current_timestamp > last_allowed_timestamp:
             # remove cam_file after last_allowed_timestamp
             os.remove(cam_file)
-
 
 
 if __name__ == "__main__":

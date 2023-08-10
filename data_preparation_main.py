@@ -31,7 +31,7 @@ def data_preparation_main(measurement_path):
     timestamps = get_synchronized_timestamps(temp_path)
 
     for key, timestamp in timestamps.items():
-        print(f"Starting timestamp for {key} is {timestamp}")
+        # print(f"Starting timestamp for {key} is {timestamp}")
         if "IMU" in key:
             for sensor in timeseries_downsampler.timeseries_sensors:
                 remove_obsolete_values(temp_path, sensor, timestamp)
