@@ -76,7 +76,8 @@ def remove_obsolete_images_at_beginning(measurement_path, camera_name, earliest_
 def unify_image_timestamps(measurement_path, starting_timestamp):
     """
         Function to unify timestamps in filenames for all cameras.
-        As a result all cameras will have images with the same timestamps starting at starting_timestamp incrementing by 200 ms
+        As a result all cameras will have images with the same timestamps starting at starting_timestamp incrementing by 200 ms.
+        Additionally no camera will contain a image anymore, which another camera does not have.
 
         Parameters:
             - measurement_path (str): Path to the measurement
@@ -92,38 +93,29 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
                 cameras_list.append(dir)
                 camera_info_dict[dir] = {}
 
+    # initialize variables to search for camera with earliest last image (no camera should contain older images than this one)
+    camera_earliest_last_image = ""
+    earliest_last_image_timestamp = starting_timestamp + timedelta(days=10)  # will definitely be later than any other timestamp
+
     # perform renaming of images for all cameras
     for camera in cameras_list:
-        rename_image_timestamps_for_single_camera(
+        last_timestamp = rename_image_timestamps_for_single_camera(
             measurement_path, camera, starting_timestamp)
 
-    # # get the camera where the least amount of images are available
-    # camera_with_least_images = None
-    # least_images_number = 0
-    # for camera in cameras_list:
-    #     glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
-    #     files = glob.glob(glob_pattern)
-    #     if camera_with_least_images == None:
-    #         least_images_number = len(files)
-    #         camera_with_least_images = camera
-    #     else:
-    #         if least_images_number > len(files):
-    #             least_images_number = len(files)
-    #             camera_with_least_images = camera
+        if last_timestamp < earliest_last_image_timestamp:
+            earliest_last_image_timestamp = last_timestamp
+            camera_earliest_last_image = camera
 
-    # print(f"{camera_with_least_images} has least amount of images with {least_images_number} images")
+    print(
+        f"\nCamera with earliest last image is '{camera_earliest_last_image}' with timestamp {get_timestamp_string_from_timestamp(earliest_last_image_timestamp)}")
 
-    # # start renaming for camera with leas amount of images
-    # rename_image_timestamps_for_single_camera(
-    #     measurement_path, camera_with_least_images, starting_timestamp)
-
-    # # perform renaming for remaining cameras
-    # for camera in cameras_list:
-    #     if camera == camera_with_least_images:
-    #         # skip camera_with_least_images as renaming was already performed
-    #         continue
-    #     rename_image_timestamps_for_single_camera(
-    #         measurement_path, camera, starting_timestamp)
+    # delete obsolete files which not every camera contains
+    for camera in cameras_list:
+        if camera == camera_earliest_last_image:
+            # skip camera_with_least_images as there are no images to delete
+            continue
+        remove_obsolete_images_at_end(
+            measurement_path, camera, earliest_last_image_timestamp)
 
 
 def rename_image_timestamps_for_single_camera(measurement_path, camera_name, starting_timestamp):
@@ -142,32 +134,30 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
         Returns:
             - previous_timestamp_new_files (datetime.datetime): Timestamp of the last image
     """
-    # get all files with old timestamp
+    # get all currently available files = with old timestamp
     glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
     files_with_old_timestamp = glob.glob(glob_pattern)
 
-    
     # check for each camera whether it contains both types of stereo camera images
     if files_with_old_timestamp[0].split(os.sep)[-1][0] != files_with_old_timestamp[-1].split(os.sep)[-1][0]:
         raise Exception(
             f"Images of both stereo cameras for '{camera_name}' are stored in the same directory! This is not supported!")
 
-
-    # extract measurement date from earliest timestamp for get_timestamp_from_picture()
+    # extract measurement date from starting timestamp for usage of get_timestamp_from_picture()
     measurement_date = datetime(year=starting_timestamp.year,
                                 month=starting_timestamp.month, day=starting_timestamp.day)
 
     # initialize variables for loop
-    # variable to store timestamp of previous file for the present files
+    # variable to store timestamp of previous file for the already present files
     previous_timestamp_present_files = None
-    # variable to store timestamp of previous file for the renamed files
+    # variable to store timestamp of previous file for the new renamed files
     previous_timestamp_new_files = starting_timestamp
 
     # copy every file and name the new file with new timestamp
     for index, cam_file in enumerate(files_with_old_timestamp):
-        new_filename = ""
+        new_filename = ""  # reset variable for new filename for each loop
 
-        # get current timestamp of file for plausibility check
+        # get timestamp of current file
         current_filename = cam_file.split(os.sep)[-1]
         current_timestamp = get_timestamp_from_picture(
             current_filename, measurement_date)
@@ -176,6 +166,7 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
             # for the first file previous_timestamp_present_files must be initialized
             previous_timestamp_present_files = current_timestamp
 
+        # calculate number of passed capturing periods between this and the previous image (period = 200 ms)
         time_diff = current_timestamp - previous_timestamp_present_files
         passed_capturing_periods_between_images = int(
             time_diff.microseconds/180000)
@@ -189,8 +180,10 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
                   f"Details:\n\tcurrent timestamp:'{get_timestamp_string_from_timestamp(current_timestamp)}'\n\tprevious timestamp:'{get_timestamp_string_from_timestamp(previous_timestamp_present_files)}'")
         elif passed_capturing_periods_between_images == 0 and index != 0:
             # TODO: Check whether it might be necessary to keep all files, especially at beginning of measurement!
-            print(f"Image with timestamp {get_timestamp_string_from_timestamp(current_timestamp)} is second images in this period! Only this file will be stored!")
+            print(
+                f"Image with timestamp {get_timestamp_string_from_timestamp(current_timestamp)} is second images in this period! Only this file will be stored!")
 
+        # get new filename based previous_timestamp_new_files
         timestamp_for_new_file = previous_timestamp_new_files + \
             passed_capturing_periods_between_images * \
             timedelta(milliseconds=200)
@@ -202,26 +195,48 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
         previous_timestamp_new_files = timestamp_for_new_file
 
         # copy image and name it with new timestamp
-        src = cam_file
-        dest = os.path.join(measurement_path, camera_name, new_filename+".jpg")
-        shutil.copy(src, dest)
+        path_new_file = os.path.join(
+            measurement_path, camera_name, new_filename+".jpg")
+        shutil.copy(cam_file, path_new_file)
 
         # remove old file
         os.remove(cam_file)
 
-    print(f"Images for camera '{camera_name}' are now renamed starting at timestamp {get_timestamp_string_from_timestamp(starting_timestamp)}")
+    print(
+        f"Images for camera '{camera_name}' are now renamed starting at timestamp {get_timestamp_string_from_timestamp(starting_timestamp)}")
     return previous_timestamp_new_files
 
 
-def remove_obsolete_images_at_end(measurement_path):
+def remove_obsolete_images_at_end(measurement_path, camera, last_allowed_timestamp):
     """
         Function to remove all obsolete images at the end of the measurement with the target that all cameras in measurement_path have
         an equal amount of images.
 
         Parameters:
             - measurement_path (str): Path to the measurement
+            - camera_name (str): Name of the camera to perform the function for
+            - last_allowed_timestamp (datetime.datetime): Timestamp to use for further detection of obsolete images
     """
-    pass
+    # extract measurement date from earliest timestamp for get_timestamp_from_picture()
+    measurement_date = datetime(year=last_allowed_timestamp.year,
+                                month=last_allowed_timestamp.month, day=last_allowed_timestamp.day)
+
+    # extract list of all files from camera directory
+    files_glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
+    cam_files = glob.glob(files_glob_pattern)
+
+
+    # iterate over all files and check if file has to be removed
+    for index, cam_file in enumerate(cam_files):
+        # get timestamp of file
+        current_filename = cam_file.split(os.sep)[-1]
+        current_timestamp = get_timestamp_from_picture(
+            current_filename, measurement_date)
+
+        if current_timestamp > last_allowed_timestamp:
+            # remove cam_file after last_allowed_timestamp
+            os.remove(cam_file)
+
 
 
 if __name__ == "__main__":
@@ -241,6 +256,6 @@ if __name__ == "__main__":
     # remove_obsolete_images(temp_path, "LeftCam", testdate3)
     # remove_obsolete_images(temp_path, "RightCam", testdate3)
 
-    testdate = datetime(year=2023, month=7, day=25, hour=12,
-                        minute=58, second=21, microsecond=673)
+    testdate = datetime(year=2023, month=7, day=26, hour=12,
+                        minute=58, second=21, microsecond=671000)
     unify_image_timestamps(temp_path, testdate)

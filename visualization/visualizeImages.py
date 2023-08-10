@@ -90,7 +90,7 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data):
         Parameter:
             - measurement_path (str): Path to the measurement
     """
-    cameras = ["BellyCam", "ChinCam", "HeadCam", "LeftCam", "RightCam"]
+    cameras = ["BellyCamLeft", "ChinCamLeft", "HeadCamLeft", "LeftCamLeft", "RightCamLeft"]
     filename_list = []
 
     # get filenames of all images and add them to filename_list
