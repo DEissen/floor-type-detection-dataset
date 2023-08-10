@@ -265,6 +265,19 @@ def get_data_from_info_json_for_timestamp_evaluation(measurement_path):
         return measurement_date, time_diff_data
 
 
+def get_timestamp_string_from_timestamp(timestamp: datetime):
+    """
+        Function to convert timestamp from datetime object to string. By using this function, the format can be changed at this single position.
+
+        Parameters:
+            - timestamp (datetime.datetime): datetime object to convert to string
+
+        Return:
+            - (str): Timestamp in format  "%H_%M_%S_%f"[:-3]
+    """
+    return timestamp.strftime("%H_%M_%S_%f")[:-3]
+
+
 if __name__ == "__main__":
     # create path to temp directory
     file_dir = os.path.dirname(os.path.abspath(__file__))
