@@ -369,6 +369,8 @@ def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_s
 def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False):
     """
         Function to load a complete IMU measurement for sensor from measurement_path in one array.
+        In case the IMU dir contains more than 60 files, only the first part of the data of each file is taken,
+        as it's expected that in this case the data preparation was already done and the data has to be extracted from the longer windows.
 
         Parameters:
             - measurement_path (str): Path to the measurement
