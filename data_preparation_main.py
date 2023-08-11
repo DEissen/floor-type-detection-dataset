@@ -27,7 +27,7 @@ def data_preparation_main(measurement_path):
         temp_path)
     timeseries_downsampler.start_downsampling()
 
-    print("\n\n### Step 3: Get synchronized timestamps and delete data previous to synchronized timestamp ###")
+    print("\n\n### Step 3: Get synchronized timestamps, create windows for IMU data and delete data previous to synchronized timestamp ###")
     timestamps = get_synchronized_timestamps(temp_path)
 
     for key, timestamp in timestamps.items():
@@ -45,7 +45,7 @@ def data_preparation_main(measurement_path):
             remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
     print("\n\n### Step 4: Unify image timestamps (including deletion of images for timestamps that are not available for all cameras) ###")
-    unify_image_timestamps(temp_path, timestamps["IMU"])
+    camera_earliest_last_image, earliest_last_image_timestamp = unify_image_timestamps(temp_path, timestamps["IMU"])
     
     # uncomment to check how data looks after preparation step
     # visualize_result()

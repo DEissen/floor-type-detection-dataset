@@ -77,7 +77,6 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
     """
         Function to unify timestamps in filenames for all cameras.
         As a result all cameras will have images with the same timestamps starting at starting_timestamp incrementing by 200 ms.
-        Additionally no camera will contain a image anymore, which another camera does not have.
 
         Parameters:
             - measurement_path (str): Path to the measurement
@@ -109,14 +108,7 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
 
     print(
         f"\nCamera with earliest last image is '{camera_earliest_last_image}' with timestamp {get_timestamp_string_from_timestamp(earliest_last_image_timestamp)}")
-
-    # delete obsolete files which not every camera contains
-    for camera in cameras_list:
-        if camera == camera_earliest_last_image:
-            # skip camera_with_least_images as there are no images to delete
-            continue
-        remove_obsolete_images_at_end(
-            measurement_path, camera, earliest_last_image_timestamp)
+    return camera_earliest_last_image, earliest_last_image_timestamp
 
 
 def rename_image_timestamps_for_single_camera(measurement_path, camera_name, starting_timestamp):
@@ -221,36 +213,6 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
             f"The following timestamps are missing for camera {camera_name}: {list_missing_timestamp_strings}")
 
     return previous_timestamp_new_files
-
-
-def remove_obsolete_images_at_end(measurement_path, camera, last_allowed_timestamp):
-    """
-        Function to remove all obsolete images at the end of the measurement with the target that all cameras in measurement_path have
-        an equal amount of images.
-
-        Parameters:
-            - measurement_path (str): Path to the measurement
-            - camera_name (str): Name of the camera to perform the function for
-            - last_allowed_timestamp (datetime.datetime): Timestamp to use for further detection of obsolete images
-    """
-    # extract measurement date from earliest timestamp for get_timestamp_from_picture()
-    measurement_date = datetime(year=last_allowed_timestamp.year,
-                                month=last_allowed_timestamp.month, day=last_allowed_timestamp.day)
-
-    # extract list of all files from camera directory
-    files_glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
-    cam_files = glob.glob(files_glob_pattern)
-
-    # iterate over all files and check if file has to be removed
-    for index, cam_file in enumerate(cam_files):
-        # get timestamp of file
-        current_filename = cam_file.split(os.sep)[-1]
-        current_timestamp = get_timestamp_from_picture(
-            current_filename, measurement_date)
-
-        if current_timestamp > last_allowed_timestamp:
-            # remove cam_file after last_allowed_timestamp
-            os.remove(cam_file)
 
 
 if __name__ == "__main__":
