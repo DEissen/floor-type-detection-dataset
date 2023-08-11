@@ -353,7 +353,6 @@ def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_s
 
         # stop window creation, if the window is too small (due to not enough data left)
         if np.shape(window)[0] != window_size:
-            print("window is to small for ", i)
             break
 
         # calculate timestamp for window

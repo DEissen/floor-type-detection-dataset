@@ -277,13 +277,108 @@ def get_timestamp_string_from_timestamp(timestamp: datetime):
     """
     return timestamp.strftime("%H_%M_%S_%f")[:-3]
 
+def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images):
+    """
+        Function to remove all obsolete images at the end of the measurement with the target that all sensors in measurement_path have
+        an equal amount of images.
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - last_allowed_timestamp_images (datetime.datetime): Last allowed timestamp of the images
+    """
+    # initialize local variables
+    last_allowed_timestamp_IMU_checked = False
+    deletion_for_IMU_needed = True
+    last_allowed_timestamp = None
+    
+    # get measurement date first for all timestamps
+    measurement_date, _ = get_data_from_info_json_for_timestamp_evaluation(
+        measurement_path)
+
+    # get list of all sensors
+    sensor_list = []
+    for root, dirs, files in os.walk(measurement_path):
+        for dir in dirs:
+            sensor_list.append(dir)
+
+            # additionally get the last allowed timestamp from IMU measurement from the first checked IMU measurement
+            if not last_allowed_timestamp_IMU_checked and not "Cam" in dir:
+                # get filename of last file in the dir of IMU measurement
+                glob_pattern = os.path.join(root, dir, "*.csv")
+                files = glob.glob(glob_pattern)
+                last_filename = files[-1].split(os.sep)[-1]
+
+                # extract timestamp string from filename and convert it
+                last_allowed_timestamp_string_IMU = last_filename[:-4]
+                last_allowed_timestamp_IMU = get_timestamp_from_timestamp_string(last_allowed_timestamp_string_IMU, measurement_date)
+
+                # set Flag to True so this check won't be done multiple times
+                last_allowed_timestamp_IMU_checked = True
+
+    # check which last allowed timestamp is earlier 
+    if last_allowed_timestamp_IMU > last_allowed_timestamp_images:
+        last_allowed_timestamp = last_allowed_timestamp_images
+    else:
+        last_allowed_timestamp = last_allowed_timestamp_IMU
+        
+        # in case the IMU timestamp is the last allowed timestamp, deletion for IMU data is not needed 
+        deletion_for_IMU_needed = False
+        print("No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
+
+    print(f"All data samples after {get_timestamp_string_from_timestamp(last_allowed_timestamp)} will be deleted now.")
+
+    # delete obsolete files which not every camera contains
+    for sensor in sensor_list:
+        if not deletion_for_IMU_needed and not "Cam" in sensor:
+            # skip IMU data, if there is no data to delete for IMU
+            continue
+        remove_obsolete_data_at_end_for_sensor(
+            measurement_path, sensor, last_allowed_timestamp)
+
+def remove_obsolete_data_at_end_for_sensor(measurement_path, sensor, last_allowed_timestamp):
+    """
+        Function to remove all obsolete images at the end of the sensor which are after last_allowed_timestamp.
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - sensor (str): Name of the sensor to perform the function for
+            - last_allowed_timestamp (datetime.datetime): Timestamp to use for further detection of obsolete images
+    """
+    # extract measurement date from earliest timestamp for get_timestamp_from_picture()
+    measurement_date = datetime(year=last_allowed_timestamp.year,
+                                month=last_allowed_timestamp.month, day=last_allowed_timestamp.day)
+
+    # extract list of all files from sensor directory
+    if "Cam" in sensor:
+        # cameras have .jpg files
+        files_glob_pattern = os.path.join(measurement_path, sensor, "*.jpg")
+    else:
+        # other sensors have .csv files
+        files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
+    files = glob.glob(files_glob_pattern)
+
+    # iterate over all files and check if file has to be removed
+    for index, file in enumerate(files):
+        # get timestamp of file
+        current_filename = file.split(os.sep)[-1]
+        current_timestamp = get_timestamp_from_picture(
+            current_filename, measurement_date)
+
+        if current_timestamp > last_allowed_timestamp:
+            # remove cam_file after last_allowed_timestamp
+            os.remove(file)
+
 
 if __name__ == "__main__":
     # create path to temp directory
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, os.pardir, "temp")
 
-    timestamps = get_synchronized_timestamps(temp_path)
+    # timestamps = get_synchronized_timestamps(temp_path)
 
-    for key, value in timestamps.items():
-        print(key, value)
+    # for key, value in timestamps.items():
+    #     print(key, value)
+
+    test_date = datetime(year=2023, month=7, day=26, hour=12,
+                        minute=59, second=12, microsecond=873000)
+    remove_obsolete_data_at_end(temp_path, test_date)

@@ -80,7 +80,10 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
 
         Parameters:
             - measurement_path (str): Path to the measurement
-            - earliest_timestamp (datetime.datetime): Timestamp to use for first image name 
+            - earliest_timestamp (datetime.datetime): Timestamp to use for first image name
+
+        Returns:
+            - earliest_last_image_timestamp (datetime.datetime): Timestamp of the earliest last image from all cameras
     """
     cameras_list = []
     camera_info_dict = {}
@@ -108,7 +111,8 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
 
     print(
         f"\nCamera with earliest last image is '{camera_earliest_last_image}' with timestamp {get_timestamp_string_from_timestamp(earliest_last_image_timestamp)}")
-    return camera_earliest_last_image, earliest_last_image_timestamp
+    
+    return earliest_last_image_timestamp
 
 
 def rename_image_timestamps_for_single_camera(measurement_path, camera_name, starting_timestamp):

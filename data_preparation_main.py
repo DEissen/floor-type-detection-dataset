@@ -2,7 +2,7 @@ import os
 
 # custom imports
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir
-from data_preparation.timestamp_evaluation import get_synchronized_timestamps
+from data_preparation.timestamp_evaluation import get_synchronized_timestamps, remove_obsolete_data_at_end
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
 from visualization.visualizeTimeseriesData import plot_IMU_data
@@ -44,8 +44,11 @@ def data_preparation_main(measurement_path):
         elif "Cam" in key:
             remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
-    print("\n\n### Step 4: Unify image timestamps (including deletion of images for timestamps that are not available for all cameras) ###")
-    camera_earliest_last_image, earliest_last_image_timestamp = unify_image_timestamps(temp_path, timestamps["IMU"])
+    print("\n\n### Step 4: Unify image timestamps ###")
+    earliest_last_image_timestamp = unify_image_timestamps(temp_path, timestamps["IMU"])
+
+    print("\n\n### Step 4: Deletion of data for timestamps that are not available for all sensors ###")
+    remove_obsolete_data_at_end(temp_path, earliest_last_image_timestamp)
     
     # uncomment to check how data looks after preparation step
     # visualize_result()
