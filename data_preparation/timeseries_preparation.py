@@ -62,6 +62,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
 
         # execute downsampling for all files
         for root, dirs, files in os.walk(os.path.join(self.measurement_path, self.timeseries_sensors[0])):
+            files.sort()
             for file in files:
                 print(f"\nStart downsampling for file '{file}'")
                 self.__start_downsampling_for_all_sensors_by_filename(file)
