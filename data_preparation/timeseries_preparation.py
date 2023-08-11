@@ -380,7 +380,12 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
 
     data_list = []
     for file in filename_list:
-        data_list.extend(np.genfromtxt(file, delimiter=';'))
+        if len(filename_list) < 60:
+            # for short file list the whole file can be taken
+            data_list.extend(np.genfromtxt(file, delimiter=';'))
+        else:
+            # for many files in the dir the preparing was most likely already done, thus only part of data is needed
+            data_list.extend(np.genfromtxt(file, delimiter=';')[:10,:])
         if delete_source:
             os.remove(file)
 

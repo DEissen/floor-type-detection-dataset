@@ -91,8 +91,7 @@ if __name__ == "__main__":
     gin.parse_config_files_and_bindings(
         [gin_config_path], variant_specific_bindings)
 
-    # measurement_path = "./testdata/measurement_25_07__15_03"
+    measurement_path = "./testdata/measurement_25_07__15_03"
     # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
-    measurement_path = r"C:\Users\Dominik\Downloads\updated_measurement_25_07__12_58.zip"
 
     data_preparation_main(measurement_path)
