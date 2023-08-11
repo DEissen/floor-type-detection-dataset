@@ -2,7 +2,7 @@ import glob
 import os
 from datetime import datetime, timedelta
 import json
-
+import numpy as np
 
 def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
     """
@@ -368,6 +368,52 @@ def remove_obsolete_data_at_end_for_sensor(measurement_path, sensor, last_allowe
             # remove cam_file after last_allowed_timestamp
             os.remove(file)
 
+def create_label_csv(measurement_path):
+    """
+        Function to create label csv for the completely prepared data based on label present in info.json.
+
+        Prerequisites:
+            - Complete preprocessing must be done which means:
+                - All sensors have synchronized timestamps
+                - IMU data was split in windows
+                - All sensors contain only the same timestamps (no timestamp missing or additional for any sensor)
+        
+        Parameters:
+            - measurement_path (str): Path to the measurement
+    """
+    label = None
+    files = None
+    timestamp_label_list = []
+
+    # get label from json
+    json_path = os.path.join(measurement_path, "info.json")
+
+    with open(json_path, "r") as f:
+        info_struct = json.load(f)
+        label = info_struct["floor type"]
+
+    # get all filenames from first dir in measurement
+    for root, dirs, files in os.walk(measurement_path):
+        for dir in dirs:
+            if "Cam" in dir:
+                # cameras have .jpg files
+                files_glob_pattern = os.path.join(measurement_path, dir, "*.jpg")
+            else:
+                # other sensors have .csv files
+                files_glob_pattern = os.path.join(measurement_path, dir, "*.csv")
+            files = glob.glob(files_glob_pattern)
+            break
+
+    # create list of timestamp to label mapping (every timestamp has the same label!) 
+    for file in files:
+        timestamp_string = file.split(os.sep)[-1][:-4]
+        timestamp_label_list.append([timestamp_string, label])
+
+    # save the list
+    np.savetxt(os.path.join(measurement_path, "labels.csv"), timestamp_label_list, delimiter=";", header="timestamp;label", fmt="%s")
+
+    print("File 'label.csv' was created.")
+
 
 if __name__ == "__main__":
     # create path to temp directory
@@ -379,6 +425,8 @@ if __name__ == "__main__":
     # for key, value in timestamps.items():
     #     print(key, value)
 
-    test_date = datetime(year=2023, month=7, day=26, hour=12,
-                        minute=59, second=12, microsecond=873000)
-    remove_obsolete_data_at_end(temp_path, test_date)
+    # test_date = datetime(year=2023, month=7, day=26, hour=12,
+    #                     minute=59, second=12, microsecond=873000)
+    # remove_obsolete_data_at_end(temp_path, test_date)
+
+    create_label_csv(temp_path)

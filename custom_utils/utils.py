@@ -43,3 +43,24 @@ def copy_measurement_to_temp(measurement_path):
         copy_tree(measurement_path, temp_path)
 
     print(f"Files were successfully copied to {temp_path}")
+
+def copy_prepared_dataset(dataset_path=None):
+    """
+        Util function to copy a prepared dataset from the temp/ dir in the repository to dataset_path.
+        If dataset_path is equal to None, the dataset will be copied to results/ dir in the repository.
+        
+        Parameters:
+            - dataset_path: Path to the directory where the prepared dataset shall be copied to
+    """
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_path = os.path.join(file_dir, os.pardir, "temp")
+
+    if dataset_path == None:
+        dataset_path = os.path.join(file_dir, os.pardir, "results")
+    
+    print(f"Prepared dataset will be copied to {dataset_path}")
+    
+    # if measurement path contains files, directly copy the measurement path content
+    copy_tree(temp_path, dataset_path)
+
+    print(f"Files were successfully copied to {dataset_path}")
