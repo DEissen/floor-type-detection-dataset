@@ -251,6 +251,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
     # get filename of first file in the dir
     glob_pattern = os.path.join(measurement_path, sensor_name, "*.csv")
     files = glob.glob(glob_pattern)
+    files.sort()
     first_filename = files[0].split(os.sep)[-1]
 
     # extract timestamp string from filename and convert it to datetime object
@@ -379,6 +380,7 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
     """
     files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
     filename_list = glob.glob(files_glob_pattern)
+    filename_list.sort()
 
     data_list = []
     for file in filename_list:

@@ -102,6 +102,7 @@ def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_
     # extract all timestamps from camera directory
     files_glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
     cam_files = glob.glob(files_glob_pattern)
+    cam_files.sort()
     for cam_file in cam_files:
         filename = cam_file.split(os.sep)[-1]
         timestamps.append(get_timestamp_from_picture(
@@ -210,6 +211,7 @@ def get_earliest_timestamp_from_IMU(measurement_path, measurement_date):
                 # get filename of first file in the dir
                 glob_pattern = os.path.join(root, dir, "*.csv")
                 files = glob.glob(glob_pattern)
+                files.sort()
                 first_filename = files[0].split(os.sep)[-1]
 
                 # extract timestamp string from filename and convert it
@@ -308,6 +310,7 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
                 # get filename of last file in the dir of IMU measurement
                 glob_pattern = os.path.join(root, dir, "*.csv")
                 files = glob.glob(glob_pattern)
+                files.sort()
                 last_filename = files[-1].split(os.sep)[-1]
 
                 # extract timestamp string from filename and convert it
@@ -361,6 +364,7 @@ def remove_obsolete_data_at_end_for_sensor(measurement_path, sensor, last_allowe
         # other sensors have .csv files
         files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
     files = glob.glob(files_glob_pattern)
+    files.sort()
 
     # iterate over all files and check if file has to be removed
     for index, file in enumerate(files):
@@ -410,6 +414,7 @@ def create_label_csv(measurement_path):
                 files_glob_pattern = os.path.join(
                     measurement_path, dir, "*.csv")
             files = glob.glob(files_glob_pattern)
+            files.sort()
             break
 
     # create list of timestamp to label mapping (every timestamp has the same label!)

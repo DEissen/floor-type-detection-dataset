@@ -33,6 +33,7 @@ def remove_obsolete_images_at_beginning(measurement_path, camera_name, earliest_
     # extract list of all files from camera directory
     files_glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
     cam_files = glob.glob(files_glob_pattern)
+    cam_files.sort()
 
     # Check whether camera contains images of both stereo cameras
     if cam_files[0].split(os.sep)[-1][0] != cam_files[-1].split(os.sep)[-1][0]:
@@ -135,6 +136,7 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
     # get all currently available files = with old timestamp
     glob_pattern = os.path.join(measurement_path, camera_name, "*.jpg")
     files_with_old_timestamp = glob.glob(glob_pattern)
+    files_with_old_timestamp.sort()
 
     # check for each camera whether it contains both types of stereo camera images
     if files_with_old_timestamp[0].split(os.sep)[-1][0] != files_with_old_timestamp[-1].split(os.sep)[-1][0]:

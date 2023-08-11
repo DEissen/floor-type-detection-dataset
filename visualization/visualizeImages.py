@@ -75,7 +75,9 @@ def show_all_images_afterwards(measurement_path):
     # get filenames of all images and add them to filename_list
     for camera in cameras:
         files_glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
-        filename_list.append(glob.glob(files_glob_pattern))
+        files = glob.glob(files_glob_pattern)
+        files.sort()
+        filename_list.append(files)
 
     for i in range(len(filename_list[0])):
         try:
@@ -102,7 +104,9 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data):
     # get filenames of all images and add them to filename_list
     for camera in cameras:
         files_glob_pattern = os.path.join(measurement_path, camera, "*.jpg")
-        filename_list.append(glob.glob(files_glob_pattern))
+        files = glob.glob(files_glob_pattern)
+        files.sort()
+        filename_list.append(files)
 
     for i in range(len(filename_list[0])):
         # images return every 200 ms => IMU data has values every 20 ms => next image fits to timestamp 10 measurements later
