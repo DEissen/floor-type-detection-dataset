@@ -2,7 +2,7 @@ import os
 import gin
 
 # custom imports
-from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset
+from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps, remove_obsolete_data_at_end, create_label_csv
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
@@ -64,6 +64,9 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     create_label_csv(temp_path)
 
     print("\n\n### Step 7: Copy prepared dataset ###")
+    if dataset_path == None:
+        # clean results/ dir if it shall be used
+        clean_results_dir()
     copy_prepared_dataset(dataset_path)
 
     # uncomment to check how data looks after preparation step
