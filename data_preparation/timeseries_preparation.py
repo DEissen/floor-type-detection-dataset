@@ -291,7 +291,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
         print(f"No update needed for sensor '{sensor_name}'")
 
 
-def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_size, stride, normalization=False):
+def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_size, normalization=False):
     """
         Function to create sliding windows of the whole measurement from sensor sensor_name in measurement_path.
         Windows will have the size windows_size and will be shifted by stride.
@@ -303,9 +303,11 @@ def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_s
             - measurement_path (str): Path to the measurement
             - sensor_name (str): Name of the sensor to perform the function for
             - window_size (int): Size of the windows to create
-            - stride (int): Stride between two windows as number of data points 
             - normalization (bool): Select whether to apply normalization (Z Score normalization)
     """
+    # don't change the stride, as the whole logic expects a window each 200 ms (as this is the capturing rate of the cameras)
+    stride = 10
+
     # get starting timestamp
     measurement_timestamp, _ = get_data_from_info_json_for_timestamp_evaluation(
         measurement_path)

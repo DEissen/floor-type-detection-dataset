@@ -1,4 +1,5 @@
 import os
+import gin
 
 # custom imports
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset
@@ -8,8 +9,8 @@ from data_preparation.image_preparation import remove_obsolete_images_at_beginni
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
 
-
-def data_preparation_main(measurement_path, dataset_path=None):
+@gin.configurable
+def data_preparation_main(measurement_path, dataset_path=None, window_size=50, normalize_IMU_data=True):
     """
         Function to start the complete data preparation process for a new measurement.
 
@@ -17,6 +18,9 @@ def data_preparation_main(measurement_path, dataset_path=None):
             - measurement_path (str): Path to dir where the measurement is stored (can also be a .zip file)
             - dataset_path (str): Path to dir where the prepared data shall be copied to.
                                   Default = None -> the dataset will be copied to results/ dir in the repository.
+            - window_size (int): Size of the windows to create for IMU data (default = 50)
+            - normalize_IMU_data (bool): Select whether to apply Z Score normalization to IMU data (default = True)
+
     """
     print("### Step 1: Copy measurements ###")
     # # clear the temp dir and copy the desired measurement to it afterwards
@@ -43,12 +47,7 @@ def data_preparation_main(measurement_path, dataset_path=None):
         if "IMU" in key:
             for sensor in timeseries_downsampler.timeseries_sensors:
                 remove_obsolete_values(temp_path, sensor, timestamp)
-
-                # configuration values for sliding window TODO: better solution to configure it!
-                window_size = 50
-                stride = 10
-                normalization = True 
-                create_sliding_windows_and_save_them(temp_path, sensor, window_size, stride, normalization)
+                create_sliding_windows_and_save_them(temp_path, sensor, window_size, normalize_IMU_data)
         elif "Cam" in key:
             remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
@@ -81,6 +80,12 @@ def visualize_result():
     show_all_images_afterwards_including_imu_data(temp_path, data)
 
 if __name__ == "__main__":
+    
+    # get and use gin config
+    gin_config_path = "./configs/config.gin"
+    variant_specific_bindings = []
+    gin.parse_config_files_and_bindings([gin_config_path], variant_specific_bindings)
+
     # measurement_path = "./testdata/measurement_25_07__15_03"
     # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
     measurement_path = r"C:\Users\Dominik\Downloads\updated_measurement_25_07__12_58.zip"
