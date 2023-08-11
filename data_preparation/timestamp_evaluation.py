@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import json
 import numpy as np
 
+
 def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
     """
         Function to return the closest timestamp for each camera to the earliest possible timestamp of the IMU measurements.
@@ -277,6 +278,7 @@ def get_timestamp_string_from_timestamp(timestamp: datetime):
     """
     return timestamp.strftime("%H_%M_%S_%f")[:-3]
 
+
 def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images):
     """
         Function to remove all obsolete images at the end of the measurement with the target that all sensors in measurement_path have
@@ -290,7 +292,7 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
     last_allowed_timestamp_IMU_checked = False
     deletion_for_IMU_needed = True
     last_allowed_timestamp = None
-    
+
     # get measurement date first for all timestamps
     measurement_date, _ = get_data_from_info_json_for_timestamp_evaluation(
         measurement_path)
@@ -310,22 +312,24 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
 
                 # extract timestamp string from filename and convert it
                 last_allowed_timestamp_string_IMU = last_filename[:-4]
-                last_allowed_timestamp_IMU = get_timestamp_from_timestamp_string(last_allowed_timestamp_string_IMU, measurement_date)
+                last_allowed_timestamp_IMU = get_timestamp_from_timestamp_string(
+                    last_allowed_timestamp_string_IMU, measurement_date)
 
                 # set Flag to True so this check won't be done multiple times
                 last_allowed_timestamp_IMU_checked = True
 
-    # check which last allowed timestamp is earlier 
+    # check which last allowed timestamp is earlier
     if last_allowed_timestamp_IMU > last_allowed_timestamp_images:
         last_allowed_timestamp = last_allowed_timestamp_images
     else:
         last_allowed_timestamp = last_allowed_timestamp_IMU
-        
-        # in case the IMU timestamp is the last allowed timestamp, deletion for IMU data is not needed 
+
+        # in case the IMU timestamp is the last allowed timestamp, deletion for IMU data is not needed
         deletion_for_IMU_needed = False
         print("No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
 
-    print(f"All data samples after {get_timestamp_string_from_timestamp(last_allowed_timestamp)} will be deleted now.")
+    print(
+        f"All data samples after {get_timestamp_string_from_timestamp(last_allowed_timestamp)} will be deleted now.")
 
     # delete obsolete files which not every camera contains
     for sensor in sensor_list:
@@ -334,6 +338,7 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
             continue
         remove_obsolete_data_at_end_for_sensor(
             measurement_path, sensor, last_allowed_timestamp)
+
 
 def remove_obsolete_data_at_end_for_sensor(measurement_path, sensor, last_allowed_timestamp):
     """
@@ -368,6 +373,7 @@ def remove_obsolete_data_at_end_for_sensor(measurement_path, sensor, last_allowe
             # remove cam_file after last_allowed_timestamp
             os.remove(file)
 
+
 def create_label_csv(measurement_path):
     """
         Function to create label csv for the completely prepared data based on label present in info.json.
@@ -377,7 +383,7 @@ def create_label_csv(measurement_path):
                 - All sensors have synchronized timestamps
                 - IMU data was split in windows
                 - All sensors contain only the same timestamps (no timestamp missing or additional for any sensor)
-        
+
         Parameters:
             - measurement_path (str): Path to the measurement
     """
@@ -397,20 +403,23 @@ def create_label_csv(measurement_path):
         for dir in dirs:
             if "Cam" in dir:
                 # cameras have .jpg files
-                files_glob_pattern = os.path.join(measurement_path, dir, "*.jpg")
+                files_glob_pattern = os.path.join(
+                    measurement_path, dir, "*.jpg")
             else:
                 # other sensors have .csv files
-                files_glob_pattern = os.path.join(measurement_path, dir, "*.csv")
+                files_glob_pattern = os.path.join(
+                    measurement_path, dir, "*.csv")
             files = glob.glob(files_glob_pattern)
             break
 
-    # create list of timestamp to label mapping (every timestamp has the same label!) 
+    # create list of timestamp to label mapping (every timestamp has the same label!)
     for file in files:
         timestamp_string = file.split(os.sep)[-1][:-4]
         timestamp_label_list.append([timestamp_string, label])
 
     # save the list
-    np.savetxt(os.path.join(measurement_path, "labels.csv"), timestamp_label_list, delimiter=";", header="timestamp;label", fmt="%s")
+    np.savetxt(os.path.join(measurement_path, "labels.csv"),
+               timestamp_label_list, delimiter=";", header="timestamp;label", fmt="%s")
 
     print("File 'label.csv' was created.")
 

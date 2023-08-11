@@ -9,6 +9,7 @@ from data_preparation.image_preparation import remove_obsolete_images_at_beginni
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
 
+
 @gin.configurable
 def data_preparation_main(measurement_path, dataset_path=None, window_size=50, normalize_IMU_data=True):
     """
@@ -47,16 +48,18 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
         if "IMU" in key:
             for sensor in timeseries_downsampler.timeseries_sensors:
                 remove_obsolete_values(temp_path, sensor, timestamp)
-                create_sliding_windows_and_save_them(temp_path, sensor, window_size, normalize_IMU_data)
+                create_sliding_windows_and_save_them(
+                    temp_path, sensor, window_size, normalize_IMU_data)
         elif "Cam" in key:
             remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
     print("\n\n### Step 4: Unify image timestamps ###")
-    earliest_last_image_timestamp = unify_image_timestamps(temp_path, timestamps["IMU"])
+    earliest_last_image_timestamp = unify_image_timestamps(
+        temp_path, timestamps["IMU"])
 
     print("\n\n### Step 5: Deletion of data for timestamps that are not available for all sensors ###")
     remove_obsolete_data_at_end(temp_path, earliest_last_image_timestamp)
-    
+
     print("\n\n### Step 6: Create labels csv file ###")
     create_label_csv(temp_path)
 
@@ -79,12 +82,14 @@ def visualize_result():
     data = load_complete_IMU_measurement(temp_path, "accelerometer")
     show_all_images_afterwards_including_imu_data(temp_path, data)
 
+
 if __name__ == "__main__":
-    
+
     # get and use gin config
     gin_config_path = "./configs/config.gin"
     variant_specific_bindings = []
-    gin.parse_config_files_and_bindings([gin_config_path], variant_specific_bindings)
+    gin.parse_config_files_and_bindings(
+        [gin_config_path], variant_specific_bindings)
 
     # measurement_path = "./testdata/measurement_25_07__15_03"
     # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"

@@ -111,7 +111,7 @@ def unify_image_timestamps(measurement_path, starting_timestamp):
 
     print(
         f"\nCamera with earliest last image is '{camera_earliest_last_image}' with timestamp {get_timestamp_string_from_timestamp(earliest_last_image_timestamp)}")
-    
+
     return earliest_last_image_timestamp
 
 

@@ -34,7 +34,7 @@ def convert_txt_to_pcd(measurement_path, filename_without_type, xyz_only=False, 
     rgb_type = " F"
     rgb_count = " 1"
     if xyz_only:
-        rgb = "" 
+        rgb = ""
         rgb_size = ""
         rgb_type = ""
         rgb_count = ""
