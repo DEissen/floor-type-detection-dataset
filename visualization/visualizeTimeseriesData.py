@@ -15,15 +15,20 @@ def plot_IMU_data_from_file(measurement_path, sensor_name, filename, start_of_pl
     plt.plot(x, y)
     plt.show()
 
-def plot_IMU_data(data, start_of_plot=None, end_of_plot=None):
+def plot_IMU_data(data, sensor_name, labels=None, start_of_plot=None, end_of_plot=None):
 
     # select wanted part of the measurement
     if start_of_plot != None and end_of_plot != None:
         data = data[start_of_plot:end_of_plot]
 
     x = np.arange(0, np.shape(data)[0])
-    plt.title("Matplotlib demo")
-    plt.plot(x, data)
+    plt.title(sensor_name)
+    if labels != None:
+        for i in range(np.shape(data)[1]):
+            plt.plot(x, data[:,i], label=labels[i])
+        plt.legend()
+    else:
+        plt.plot(x, data)
     plt.show()
 
 if __name__ == "__main__":

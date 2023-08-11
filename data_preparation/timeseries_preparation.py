@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 
 # differentiation needed to support execution of file directly and to allow function to be included by data_preparation_main.py
 if __name__ == "__main__":
-    from timestamp_evaluation import get_timestamp_from_timestamp_string
+    from timestamp_evaluation import get_timestamp_from_timestamp_string, get_earliest_timestamp_from_IMU, get_data_from_info_json_for_timestamp_evaluation
 else:
-    from data_preparation.timestamp_evaluation import get_timestamp_from_timestamp_string
+    from data_preparation.timestamp_evaluation import get_timestamp_from_timestamp_string, get_earliest_timestamp_from_IMU, get_data_from_info_json_for_timestamp_evaluation
+
 
 class TimeseriesDownsamplingForWholeMeasurement():
     """
@@ -25,6 +26,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
             Call the method TimeseriesDownsamplingForWholeMeasurement.start_downsampling() afterwards to start the downsampling process.
             As a result all timeseries/ IMU data in the measurement dir will be overwritten with the downsampled data.
     """
+
     def __init__(self, measurement_path):
         """
             Init method stores measurement_path in a member an creates member list of sensors usable for downsampling.
@@ -157,7 +159,8 @@ class TimeseriesDownsamplingForWholeMeasurement():
 
         # print info about max occurrences for plausibility check of downsampling
         print(f"Max occurrence of single value was '{max_occurrences}'")
-        print(f"Amount of odd occurrences is {self.odd_counter} which corresponds to {(self.odd_counter*100)/(self.odd_counter+self.even_counter):.2f} %")
+        print(
+            f"Amount of odd occurrences is {self.odd_counter} which corresponds to {(self.odd_counter*100)/(self.odd_counter+self.even_counter):.2f} %")
 
     def __count_subsequent_occurrences(self, array_length, current_index, value_to_check):
         """
@@ -228,6 +231,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
             np.savetxt(os.path.join(
                 self.measurement_path, sensor, filename), array_for_storing, delimiter=";")
 
+
 def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
     """
         Function to remove data points in the first measurement of sensor_name in measurement_path which are before reference_timestamp.
@@ -243,7 +247,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
     # extract measurement date from reference_timestamp for get_timestamp_from_timestamp_string()
     measurement_date = datetime(year=reference_timestamp.year,
                                 month=reference_timestamp.month, day=reference_timestamp.day)
-    
+
     # get filename of first file in the dir
     glob_pattern = os.path.join(measurement_path, sensor_name, "*.csv")
     files = glob.glob(glob_pattern)
@@ -251,10 +255,12 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
 
     # extract timestamp string from filename and convert it to datetime object
     earliest_timestamp_string = first_filename[:-4]
-    earliest_timestamp = get_timestamp_from_timestamp_string(earliest_timestamp_string, measurement_date)
+    earliest_timestamp = get_timestamp_from_timestamp_string(
+        earliest_timestamp_string, measurement_date)
 
     if earliest_timestamp > reference_timestamp:
-        raise Exception(f"Reference timestamp is before earliest available timestamp. Thus execution will be aborted.")
+        raise Exception(
+            f"Reference timestamp is before earliest available timestamp. Thus execution will be aborted.")
 
     # load data from earliest measurement
     filename = os.path.join(measurement_path, sensor_name, first_filename)
@@ -267,20 +273,118 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
 
     if shift > np.shape(data)[0]:
         # shift is not within earliest measurement file, thus execution is aborted with an Exception
-        raise Exception(f"The needed shift of {shift} is not within the earliest measurement. Thus execution will be aborted.")
+        raise Exception(
+            f"The needed shift of {shift} is not within the earliest measurement. Thus execution will be aborted.")
     elif shift > 0:
-        # drop obsolete data when mandatory 
-        print(f"Obsolete data for sensor '{sensor_name}' will be removed (first {shift} data points will be removed).")
+        # drop obsolete data when mandatory
+        print(
+            f"Obsolete data for sensor '{sensor_name}' will be removed (first {shift} data points will be removed).")
         data = data[shift:]
 
         # store data corrected timestamp as name
         np.savetxt(os.path.join(measurement_path, sensor_name, datetime.strftime(reference_timestamp, "%H_%M_%S_%f")[:-3] + ".csv"),
-                    data, delimiter=";")
-        
+                   data, delimiter=";")
+
         # delete old file
         os.remove(os.path.join(measurement_path, sensor_name, first_filename))
     else:
         print(f"No update needed for sensor '{sensor_name}'")
+
+
+def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_size, stride, normalization=False):
+    """
+        Function to create sliding windows of the whole measurement from sensor sensor_name in measurement_path.
+        Windows will have the size windows_size and will be shifted by stride.
+        The first windows will have the filename with the same timestamp as the earliest data from sensor_name in measurement_path.
+        All subsequent files will have filenames with the timestamp incremented with 20 ms * stride.
+        NOTE: Preprocessing must already be done!
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - sensor_name (str): Name of the sensor to perform the function for
+            - window_size (int): Size of the windows to create
+            - stride (int): Stride between two windows as number of data points 
+            - normalization (bool): Select whether to apply normalization (Z Score normalization)
+    """
+    # get starting timestamp
+    measurement_timestamp, _ = get_data_from_info_json_for_timestamp_evaluation(
+        measurement_path)
+    earliest_timestamp = get_earliest_timestamp_from_IMU(
+        measurement_path, measurement_timestamp)
+
+    # load data
+    delete_source = True  # enable removal of old data to prevent conflict with filenames
+    raw_data = load_complete_IMU_measurement(
+        measurement_path, sensor_name, delete_source)
+    number_data_points = np.shape(raw_data)[0]
+
+    # perform normalization if wanted
+    if normalization:
+        mean = np.mean(raw_data, axis=0)
+        std = np.std(raw_data, axis=0)
+
+        # check whether normalization is possible (prevent division by zero)
+        # if std < 0.00001 normalized data will be very large numbers, thus no normalization should be done in this case
+        mask = std > 0.00001
+        if len(np.shape(raw_data)) > 1:
+            normalization_possible = not False in mask
+        else:
+            normalization_possible = mask
+
+        if normalization_possible:
+            normalized_data = (raw_data - np.mean(raw_data,
+                               axis=0)) / np.std(raw_data, axis=0)
+        else:
+            normalized_data = raw_data
+            print(
+                f"No normalization was done for {sensor_name} as this would result in NaN values!")
+    else:
+        normalized_data = raw_data
+
+    # loop for creating the windows
+    for i in range(0, number_data_points, stride):
+        # extract window from data array
+        if len(np.shape(normalized_data)) == 1:
+            # extract window for 1D case
+            window = normalized_data[i:i+window_size]
+        else:
+            # extract window for 2D case
+            window = normalized_data[i:i+window_size, :]
+
+        # stop window creation, if the window is too small (due to not enough data left)
+        if np.shape(window)[0] != window_size:
+            print("window is to small for ", i)
+            break
+
+        # calculate timestamp for window
+        new_timestamp = earliest_timestamp + timedelta(milliseconds=i*20)
+
+        # save new window
+        new_filename = os.path.join(measurement_path, sensor_name, datetime.strftime(
+            new_timestamp, "%H_%M_%S_%f")[:-3] + ".csv")
+        np.savetxt(new_filename, window, delimiter=";")
+
+
+def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False):
+    """
+        Function to load a complete IMU measurement for sensor from measurement_path in one array.
+
+        Parameters:
+            - measurement_path (str): Path to the measurement
+            - sensor (str): Name of the sensor to load the data for
+            - delete_source (bool): If True, the files will be deleted after data was loaded (default = False)
+    """
+    files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
+    filename_list = glob.glob(files_glob_pattern)
+
+    data_list = []
+    for file in filename_list:
+        data_list.extend(np.genfromtxt(file, delimiter=';'))
+        if delete_source:
+            os.remove(file)
+
+    return np.asarray(data_list)
+
 
 if __name__ == "__main__":
     # create path to temp directory

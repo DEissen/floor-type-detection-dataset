@@ -43,20 +43,3 @@ def copy_measurement_to_temp(measurement_path):
         copy_tree(measurement_path, temp_path)
 
     print(f"Files were successfully copied to {temp_path}")
-
-def load_complete_IMU_measurement(measurement_path, sensor):
-    """
-        Function to load a complete IMU measurement for sensor from measurement_path in one array.
-
-        Parameters:
-            - measurement_path (str): Path to the measurement
-            - sensor (str): Name of the sensor to load the data for
-    """
-    files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
-    filename_list = glob.glob(files_glob_pattern)
-    
-    data_list = []
-    for file in filename_list:
-        data_list.extend(np.genfromtxt(file, delimiter=';'))
-
-    return np.asarray(data_list)

@@ -1,9 +1,9 @@
 import os
 
 # custom imports
-from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, load_complete_IMU_measurement
+from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps
-from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values
+from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
@@ -35,6 +35,12 @@ def data_preparation_main(measurement_path):
         if "IMU" in key:
             for sensor in timeseries_downsampler.timeseries_sensors:
                 remove_obsolete_values(temp_path, sensor, timestamp)
+
+                # configuration values for sliding window TODO: better solution to configure it!
+                window_size = 50
+                stride = 10
+                normalization = True 
+                create_sliding_windows_and_save_them(temp_path, sensor, window_size, stride, normalization)
         elif "Cam" in key:
             remove_obsolete_images_at_beginning(temp_path, key, timestamp)
 
@@ -52,7 +58,7 @@ def visualize_result():
     # determines which sensor is used for visualization
     data = load_complete_IMU_measurement(temp_path, "accelerometer")
     show_all_images_afterwards_including_imu_data(temp_path, data)
-    plot_IMU_data(data)
+    # plot_IMU_data(data)
 
 
 if __name__ == "__main__":
