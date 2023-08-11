@@ -220,9 +220,9 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
 
 
 if __name__ == "__main__":
-    # create path to temp directory
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_path = os.path.join(file_dir, os.pardir, "temp")
+    # # create path to temp directory
+    # file_dir = os.path.dirname(os.path.abspath(__file__))
+    # temp_path = os.path.join(file_dir, os.pardir, "temp")
 
     # testdate1 = datetime(year=2023, month=7, day=25, hour=15,
     #                     minute=3, second=15, microsecond=671000)
@@ -236,6 +236,8 @@ if __name__ == "__main__":
     # remove_obsolete_images(temp_path, "LeftCam", testdate3)
     # remove_obsolete_images(temp_path, "RightCam", testdate3)
 
-    testdate = datetime(year=2023, month=7, day=26, hour=12,
-                        minute=58, second=21, microsecond=671000)
-    unify_image_timestamps(temp_path, testdate)
+    # testdate = datetime(year=2023, month=7, day=26, hour=12,
+    #                     minute=58, second=21, microsecond=671000)
+    # unify_image_timestamps(temp_path, testdate)
+
+    pass

@@ -416,9 +416,9 @@ def create_label_csv(measurement_path):
 
 
 if __name__ == "__main__":
-    # create path to temp directory
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_path = os.path.join(file_dir, os.pardir, "temp")
+    # # create path to temp directory
+    # file_dir = os.path.dirname(os.path.abspath(__file__))
+    # temp_path = os.path.join(file_dir, os.pardir, "temp")
 
     # timestamps = get_synchronized_timestamps(temp_path)
 
@@ -429,4 +429,6 @@ if __name__ == "__main__":
     #                     minute=59, second=12, microsecond=873000)
     # remove_obsolete_data_at_end(temp_path, test_date)
 
-    create_label_csv(temp_path)
+    # create_label_csv(temp_path)
+
+    pass

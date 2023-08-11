@@ -110,7 +110,9 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data):
             break
 
 if __name__ == "__main__":
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_path = os.path.join(file_dir, os.pardir, "temp")
+    # file_dir = os.path.dirname(os.path.abspath(__file__))
+    # temp_path = os.path.join(file_dir, os.pardir, "temp")
 
-    show_all_images_afterwards(temp_path)
+    # show_all_images_afterwards(temp_path)
+
+    pass

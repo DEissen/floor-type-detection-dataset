@@ -58,10 +58,11 @@ def open_point_cloud(measurement_path, filename_without_type, print_details=Fals
 
 
 if __name__ == "__main__":
-    measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\Point_Clouds\kurz_vor_Heizung"
-    filename_without_type = "PointCloud_16-36-55"
+    # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\Point_Clouds\kurz_vor_Heizung"
+    # filename_without_type = "PointCloud_16-36-55"
 
-    convert_txt_to_pcd(measurement_path, filename_without_type,
-                   add_direction_points=True)
+    # convert_txt_to_pcd(measurement_path, filename_without_type,
+    #                add_direction_points=True)
 
-    open_point_cloud(measurement_path, filename_without_type, True)
+    # open_point_cloud(measurement_path, filename_without_type, True)
+    pass

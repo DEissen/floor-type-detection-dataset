@@ -81,8 +81,8 @@ def visualize_result():
     show_all_images_afterwards_including_imu_data(temp_path, data)
 
 if __name__ == "__main__":
-    measurement_path = "./testdata/measurement_25_07__15_03"
+    # measurement_path = "./testdata/measurement_25_07__15_03"
     # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
-    # measurement_path = r"C:\Users\Dominik\Downloads\updated_measurement_25_07__12_58.zip"
+    measurement_path = r"C:\Users\Dominik\Downloads\updated_measurement_25_07__12_58.zip"
 
     data_preparation_main(measurement_path)

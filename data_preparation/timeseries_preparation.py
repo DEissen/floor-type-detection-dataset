@@ -386,14 +386,16 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
 
 
 if __name__ == "__main__":
-    # create path to temp directory
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_path = os.path.join(file_dir, os.pardir, "temp")
+    # # create path to temp directory
+    # file_dir = os.path.dirname(os.path.abspath(__file__))
+    # temp_path = os.path.join(file_dir, os.pardir, "temp")
 
-    timeseries_downsampler = TimeseriesDownsamplingForWholeMeasurement(
-        temp_path)
-    timeseries_downsampler.start_downsampling()
+    # timeseries_downsampler = TimeseriesDownsamplingForWholeMeasurement(
+    #     temp_path)
+    # timeseries_downsampler.start_downsampling()
 
-    testdate = datetime(year=2023, month=7, day=25, hour=15,
-                        minute=3, second=16, microsecond=958000)
-    remove_obsolete_values(temp_path, "bodyHeight", testdate)
+    # testdate = datetime(year=2023, month=7, day=25, hour=15,
+    #                     minute=3, second=16, microsecond=958000)
+    # remove_obsolete_values(temp_path, "bodyHeight", testdate)
+
+    pass
