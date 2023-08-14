@@ -100,7 +100,7 @@ def visualize_result(imu_offset = 0):
 if __name__ == "__main__":
 
     # get and use gin config
-    gin_config_path = "./configs/config.gin"
+    gin_config_path = "./configs/data_preparation_config.gin"
     variant_specific_bindings = []
     gin.parse_config_files_and_bindings(
         [gin_config_path], variant_specific_bindings)
