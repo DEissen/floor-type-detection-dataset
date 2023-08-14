@@ -293,28 +293,23 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
         print(f"No update needed for sensor '{sensor_name}'")
 
 
-def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_size, normalization=False):
+def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, sensor_name, window_size, normalization=False):
     """
         Function to create sliding windows of the whole measurement from sensor sensor_name in measurement_path.
         Windows will have the size windows_size and will be shifted by stride.
-        The first windows will have the filename with the same timestamp as the earliest data from sensor_name in measurement_path.
+        The first windows will have the filename based on the timestamp earliest_timestamp.
         All subsequent files will have filenames with the timestamp incremented with 20 ms * stride.
         NOTE: Preprocessing must already be done!
 
         Parameters:
             - measurement_path (str): Path to the measurement
+            - earliest_timestamp (datetime.datetime): Timestamp for filename creation
             - sensor_name (str): Name of the sensor to perform the function for
             - window_size (int): Size of the windows to create
             - normalization (bool): Select whether to apply normalization (Z Score normalization)
     """
     # don't change the stride, as the whole logic expects a window each 200 ms (as this is the capturing rate of the cameras)
     stride = 10
-
-    # get starting timestamp
-    measurement_timestamp, _ = get_data_from_info_json_for_timestamp_evaluation(
-        measurement_path)
-    earliest_timestamp = get_earliest_timestamp_from_IMU(
-        measurement_path, measurement_timestamp)
 
     # load data
     delete_source = True  # enable removal of old data to prevent conflict with filenames
@@ -360,7 +355,9 @@ def create_sliding_windows_and_save_them(measurement_path, sensor_name, window_s
             break
 
         # calculate timestamp for window
-        new_timestamp = earliest_timestamp + timedelta(milliseconds=i*20)
+        # window has timestamp of the last value in the window 
+        # => current window starts at i after earliest timestamp and last value is window_size afterwards 
+        new_timestamp = earliest_timestamp + timedelta(milliseconds=(window_size + i)*20)
 
         # save new window
         new_filename = os.path.join(measurement_path, sensor_name, datetime.strftime(
@@ -378,6 +375,9 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
             - measurement_path (str): Path to the measurement
             - sensor (str): Name of the sensor to load the data for
             - delete_source (bool): If True, the files will be deleted after data was loaded (default = False)
+
+        Returns:
+            - (np.array) Numpy array with data for sensor
     """
     files_glob_pattern = os.path.join(measurement_path, sensor, "*.csv")
     filename_list = glob.glob(files_glob_pattern)

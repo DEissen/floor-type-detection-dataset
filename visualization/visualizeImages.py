@@ -89,13 +89,14 @@ def show_all_images_afterwards(measurement_path):
             break
 
 
-def show_all_images_afterwards_including_imu_data(measurement_path, imu_data):
+def show_all_images_afterwards_including_imu_data(measurement_path, imu_data, imu_offset = 0):
     """
         Function to show all images for all cameras from measurement_path in one figure after another.
 
         Parameter:
             - measurement_path (str): Path to the measurement
             - imu_data (np.array): IMU data for plot
+            - imu_offset (int): Offset for vertical line in IMU plot (needed if sliding windows were already created)
     """
     cameras = ["BellyCamLeft", "ChinCamLeft",
                "HeadCamLeft", "LeftCamLeft", "RightCamLeft"]
@@ -109,8 +110,8 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data):
         filename_list.append(files)
 
     for i in range(len(filename_list[0])):
-        # images return every 200 ms => IMU data has values every 20 ms => next image fits to timestamp 10 measurements later
-        imu_position = 10 * i
+        # images are available every 200 ms => IMU data has values every 20 ms => next image fits to timestamp 10 measurements later
+        imu_position = 10 * i + imu_offset
         try:
             # show i-th image of every camera
             show_camera_images_in_parallel(
