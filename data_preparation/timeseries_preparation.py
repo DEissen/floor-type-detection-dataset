@@ -76,22 +76,22 @@ class TimeseriesDownsamplingForWholeMeasurement():
             Parameters:
                 - filename (str): Name of the file which the downsampling shall be applied to
         """
-        # clear self.data_struct and self.downsampling_array for new downsampling
-        self.data_struct = {}
+        # clear self.data_dict and self.downsampling_array for new downsampling
+        self.data_dict = {}
         self.downsampling_array = None
 
-        # create new empty list in downsampled_data_struct for each sensor for new downsampling
-        self.downsampled_data_struct = {}
+        # create new empty list in downsampled_data_dict for each sensor for new downsampling
+        self.downsampled_data_dict = {}
         for sensor in self.timeseries_sensors:
-            self.downsampled_data_struct[sensor] = []
+            self.downsampled_data_dict[sensor] = []
 
-        self.__load_data_to_data_struct_and_downsampling_array(filename)
+        self.__load_data_to_data_dict_and_downsampling_array(filename)
 
         self.__perform_downsampling_for_all_sensors()
 
         self.__overwriting_measurement_data_with_downsampled_data(filename)
 
-    def __load_data_to_data_struct_and_downsampling_array(self, filename):
+    def __load_data_to_data_dict_and_downsampling_array(self, filename):
         """
             Private method to load the data of all sensors in self.timeseries_sensors present in in self.mesarument_path.
             Additionally loads data of one fitting sensor listed in self.sensors_for_downsampling to self.downsampling_array which is used as a basis for the downsampling process.
@@ -102,18 +102,18 @@ class TimeseriesDownsamplingForWholeMeasurement():
         """
         sensor_for_downsampling_found = False
 
-        # load data to data_struct
+        # load data to data_dict
         for sensor in self.timeseries_sensors:
             if sensor in self.sensors_for_downsampling and not sensor_for_downsampling_found:
                 # load data for first sensor from sensors_for_downsampling list also in downsampling_array
                 self.downsampling_array = np.genfromtxt(os.path.join(
                     self.measurement_path, sensor, filename), delimiter=';')
-                self.data_struct[sensor] = self.downsampling_array
+                self.data_dict[sensor] = self.downsampling_array
                 sensor_for_downsampling_found = True
                 print(
                     f"Using '{sensor}' for downsampling of file '{filename}'")
             else:
-                self.data_struct[sensor] = np.genfromtxt(os.path.join(
+                self.data_dict[sensor] = np.genfromtxt(os.path.join(
                     self.measurement_path, sensor, filename), delimiter=';')
 
         # stop execution if no proper sensor for downsampling is present in measurement
@@ -123,7 +123,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
 
     def __perform_downsampling_for_all_sensors(self):
         """
-            Private method to perform the downsampling process for the data present in self.data_struct based on the data present in self.downsampling_array.
+            Private method to perform the downsampling process for the data present in self.data_dict based on the data present in self.downsampling_array.
             Methods also prints some details about the downsampling process after it's finished.
         """
         # initialize local variables
@@ -200,7 +200,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
             Private method to perform downsampling step for all sensors at raw_data_index based on value of num_subsequent_occurrences.
 
             Parameters:
-                - raw_data_index (int): Index where downsampling shall be performed for all arrays in self.data_struct
+                - raw_data_index (int): Index where downsampling shall be performed for all arrays in self.data_dict
                 - num_subsequent_occurrences (int): Number of occurrences of the value at raw_data_index which determines number of occurrences for downsampled data
         """
         num_downsampled_occurrences = 0
@@ -216,19 +216,19 @@ class TimeseriesDownsamplingForWholeMeasurement():
         # append value for downsampled amount of times for each sensor
         for _ in range(num_downsampled_occurrences):
             for sensor in self.timeseries_sensors:
-                self.downsampled_data_struct[sensor].append(
-                    self.data_struct[sensor][raw_data_index])
+                self.downsampled_data_dict[sensor].append(
+                    self.data_dict[sensor][raw_data_index])
 
     def __overwriting_measurement_data_with_downsampled_data(self, filename):
         """
-            Private method to overwrite the files with filename for every sensor in self.timeseries_sensors with the downsampled data from self.downsampled_data_struct
+            Private method to overwrite the files with filename for every sensor in self.timeseries_sensors with the downsampled data from self.downsampled_data_dict
 
             Parameters:
                 - filename (str): Name of the file to overwrite with the downsampled data for every sensor
         """
         for sensor in self.timeseries_sensors:
             array_for_storing = np.asarray(
-                self.downsampled_data_struct[sensor])
+                self.downsampled_data_dict[sensor])
             np.savetxt(os.path.join(
                 self.measurement_path, sensor, filename), array_for_storing, delimiter=";")
 

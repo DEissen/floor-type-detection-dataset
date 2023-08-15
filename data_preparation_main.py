@@ -78,7 +78,7 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     copy_prepared_dataset(dataset_path)
 
     # uncomment to check how data looks after preparation step
-    visualize_result(window_size)
+    # visualize_result(window_size)
 
 
 def visualize_result(imu_offset = 0):

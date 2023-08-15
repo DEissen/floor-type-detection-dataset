@@ -37,7 +37,7 @@ class FloorTypeDetectionDataset(Dataset):
         self.transform = transform
 
         # get data for preprocessing and label mapping from configs/ dir
-        self.label_mapping_struct = load_json_from_configs(mapping_filename)
+        self.label_mapping_dict = load_json_from_configs(mapping_filename)
 
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
@@ -75,7 +75,7 @@ class FloorTypeDetectionDataset(Dataset):
         # get the label for the index
         label = self.filenames_labels_array[index, 1]
 
-        return (data_dict, self.label_mapping_struct[label])
+        return (data_dict, self.label_mapping_dict[label])
 
     def __len__(self):
         """
@@ -95,15 +95,15 @@ def load_json_from_configs(json_filename):
             - json_filename (str): Name of the JSON file in the configs/ dir
 
         Returns:
-            - json_as_struct (struct): Struct containing the data from the file json_filename
+            - json_as_dict (dict): Dict containing the data from the file json_filename
     """
     file_dir = os.path.dirname(os.path.abspath(__file__))
     json_path = os.path.join(file_dir, "configs", json_filename)
 
     with open(json_path, "r") as f:
-        json_as_struct = json.load(f)
+        json_as_dict = json.load(f)
 
-    return json_as_struct
+    return json_as_dict
 
 
 class FTDD_Transform_Superclass():
@@ -118,7 +118,7 @@ class FTDD_Transform_Superclass():
             Parameters:
                 - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir
         """
-        self.config_struct = load_json_from_configs(
+        self.config_dict = load_json_from_configs(
             preprocessing_config_filename)
 
 
@@ -129,7 +129,7 @@ class FTDD_Crop(FTDD_Transform_Superclass):
 
     def __call__(self, data_dict: dict):
         """
-            Method to crop all images in data_dict according to the config from self.config_struct.
+            Method to crop all images in data_dict according to the config from self.config_dict.
 
             Parameters:
                 - data_dict (dict): Dict containing one data sample from FTDD.
@@ -144,12 +144,12 @@ class FTDD_Crop(FTDD_Transform_Superclass):
                 image = data_dict[sensor_name]
 
                 # get values for new top, ... for cropping
-                new_top = int(self.config_struct[sensor_name]["crop_top"])
+                new_top = int(self.config_dict[sensor_name]["crop_top"])
                 new_bottom = int(
-                    self.config_struct[sensor_name]["crop_bottom"])
-                new_left = int(self.config_struct[sensor_name]["crop_left"])
+                    self.config_dict[sensor_name]["crop_bottom"])
+                new_left = int(self.config_dict[sensor_name]["crop_left"])
                 new_right = int(
-                    self.config_struct[sensor_name]["crop_right"])
+                    self.config_dict[sensor_name]["crop_right"])
 
                 # replace image in sample dict with cropped image
                 data_dict[sensor_name] = image.crop(
@@ -165,7 +165,7 @@ class FTDD_Rescale(FTDD_Transform_Superclass):
 
     def __call__(self, data_dict: dict):
         """
-            Method to rescale all images in data_dict according to the config from self.config_struct.
+            Method to rescale all images in data_dict according to the config from self.config_dict.
 
             Parameters:
                 - data_dict (dict): Dict containing one data sample from FTDD.
@@ -179,9 +179,9 @@ class FTDD_Rescale(FTDD_Transform_Superclass):
                 # get image and current properties
                 image = data_dict[sensor_name]
 
-                # get new target heigth and width from config struct
-                new_h = int(self.config_struct[sensor_name]["final_height"])
-                new_w = int(self.config_struct[sensor_name]["final_width"])
+                # get new target heigth and width from config dict
+                new_h = int(self.config_dict[sensor_name]["final_height"])
+                new_w = int(self.config_dict[sensor_name]["final_width"])
 
                 # replace image in sample dict with resized image
                 data_dict[sensor_name] = image.resize((new_w, new_h))
@@ -233,7 +233,7 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
         """
         for sensor_name in data_dict.keys():
             if "Cam" in sensor_name:
-                if self.config_struct["normalize_images"]:
+                if self.config_dict["normalize_images"]:
                     data_dict[sensor_name] = np.array(
                         data_dict[sensor_name]) / 255
             else:
@@ -243,6 +243,9 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
 
 
 if __name__ == "__main__":
+    """
+        This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
+    """
     # variables for dataset and config to use
     dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
     mapping_filename = "label_mapping_binary.json"
