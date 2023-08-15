@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from PIL import Image
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 from visualization.visualizeTimeseriesData import plot_IMU_data
@@ -232,18 +232,21 @@ if __name__ == "__main__":
     composed_transforms = transforms.Compose(transformations_list)
 
     # create dataset
-    test = FloorTypeDetectionDataset(
+    transformed_dataset = FloorTypeDetectionDataset(
         dataset_path, sensors, mapping_filename, transform=composed_transforms)
 
-    # loop for testing
-    for index, (sample, label) in enumerate(test):
-        if index == 0:
-            for sensor in sensors:
-                if "Cam" in sensor:
-                    image = sample[sensor]
-                    # plt.imshow(image.permute(1,2,0))
-                    # plt.show()
-                    print(type(image), image.shape)
-                    break
-                else:
-                    plot_IMU_data(sample[sensor], sensor)
+    # # loop for testing
+    # for index, (sample, label) in enumerate(test):
+    #     if index == 0:
+    #         for sensor in sensors:
+    #             if "Cam" in sensor:
+    #                 image = sample[sensor]
+    #                 # plt.imshow(image.permute(1,2,0))
+    #                 # plt.show()
+    #                 print(type(image), image.shape)
+    #                 break
+    #             else:
+    #                 plot_IMU_data(sample[sensor], sensor)
+
+    # create dataloader
+    dataloader = DataLoader(transformed_dataset, batch_size=8, shuffle=True, drop_last=True)
