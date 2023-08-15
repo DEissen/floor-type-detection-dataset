@@ -7,10 +7,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-from visualization.visualizeTimeseriesData import plot_IMU_data
 
 # for testing
-import matplotlib.pyplot as plt
+# from visualization.visualizeTimeseriesData import plot_IMU_data
+# import matplotlib.pyplot as plt
 
 # Ignore warnings
 import warnings
@@ -235,7 +235,7 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
             if "Cam" in sensor_name:
                 if self.config_dict["normalize_images"]:
                     data_dict[sensor_name] = np.array(
-                        data_dict[sensor_name]) / 255
+                        data_dict[sensor_name], dtype=np.float32) / 255
             else:
                 pass  # IMU data is already normalized during data preparation
 
@@ -292,5 +292,7 @@ if __name__ == "__main__":
     #         zeros +=1
     # print(f"Test set contains {ones} ones and {zeros} zeros")
     # create dataloader
-    dataloader = DataLoader(test_dataset,
+    train_dataloader = DataLoader(train_dataset,
+                            batch_size=8, shuffle=True, drop_last=True)
+    test_dataloader = DataLoader(test_dataset,
                             batch_size=8, shuffle=True, drop_last=True)
