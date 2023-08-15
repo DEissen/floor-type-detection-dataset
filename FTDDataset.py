@@ -106,9 +106,9 @@ def load_json_from_configs(json_filename):
     return json_as_struct
 
 
-class FTDD_Crop(object):
+class FTDD_Transform_Superclass():
     """
-        Class to crop images for preprocessing of FTDD. 
+        Superclass for all transform classes for FTDD. Provides __init__() method to load config.
     """
 
     def __init__(self, preprocessing_config_filename):
@@ -120,6 +120,12 @@ class FTDD_Crop(object):
         """
         self.config_struct = load_json_from_configs(
             preprocessing_config_filename)
+
+
+class FTDD_Crop(FTDD_Transform_Superclass):
+    """
+        Class to crop images for preprocessing of FTDD. Child of FTDD_Transform_Superclass, where __init__() method is relevant.
+    """
 
     def __call__(self, data_dict: dict):
         """
@@ -149,20 +155,10 @@ class FTDD_Crop(object):
         return data_dict
 
 
-class FTDD_Rescale(object):
+class FTDD_Rescale(FTDD_Transform_Superclass):
     """
-        Class to rescale images for preprocessing of FTDD.
+        Class to rescale images for preprocessing of FTDD. Child of FTDD_Transform_Superclass, where __init__() method is relevant.
     """
-
-    def __init__(self, preprocessing_config_filename):
-        """
-            Constructor for FTDD_Rescale class.
-
-            Parameters:
-                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir
-        """
-        self.config_struct = load_json_from_configs(
-            preprocessing_config_filename)
 
     def __call__(self, data_dict: dict):
         """
@@ -187,7 +183,7 @@ class FTDD_Rescale(object):
         return data_dict
 
 
-class ToTensor(object):
+class ToTensor():
     """
         Class to convert images and numpy arrays to Tensors as final step for preprocessing of FTDD.
     """
@@ -236,17 +232,19 @@ if __name__ == "__main__":
         dataset_path, sensors, mapping_filename, transform=composed_transforms)
 
     # # loop for testing
-    # for index, (sample, label) in enumerate(test):
+    # for index, (sample, label) in enumerate(transformed_dataset):
     #     if index == 0:
     #         for sensor in sensors:
     #             if "Cam" in sensor:
     #                 image = sample[sensor]
-    #                 # plt.imshow(image.permute(1,2,0))
-    #                 # plt.show()
-    #                 print(type(image), image.shape)
+    #                 plt.imshow(image.permute(1, 2, 0))
+    #                 plt.show()
+    #                 # print(type(image), image.shape)
     #                 break
     #             else:
     #                 plot_IMU_data(sample[sensor], sensor)
+    #         break
 
     # create dataloader
-    dataloader = DataLoader(transformed_dataset, batch_size=8, shuffle=True, drop_last=True)
+    dataloader = DataLoader(transformed_dataset,
+                            batch_size=8, shuffle=True, drop_last=True)
