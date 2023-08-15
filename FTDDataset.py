@@ -111,14 +111,15 @@ class FTDD_Crop(object):
         Class to crop images for preprocessing of FTDD. 
     """
 
-    def __init__(self, config_struct):
+    def __init__(self, preprocessing_config_filename):
         """
             Constructor for FTDD_Crop class.
 
             Parameters:
-                - config_struct (dict): Dict which contains the config for the image cropping.
+                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir
         """
-        self.config_struct = config_struct
+        self.config_struct = load_json_from_configs(
+            preprocessing_config_filename)
 
     def __call__(self, data_dict: dict):
         """
@@ -153,14 +154,15 @@ class FTDD_Rescale(object):
         Class to rescale images for preprocessing of FTDD.
     """
 
-    def __init__(self, config_struct):
+    def __init__(self, preprocessing_config_filename):
         """
             Constructor for FTDD_Rescale class.
 
             Parameters:
-                - config_struct (dict): Dict which contains the config for the image cropping.
+                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir
         """
-        self.config_struct = config_struct
+        self.config_struct = load_json_from_configs(
+            preprocessing_config_filename)
 
     def __call__(self, data_dict: dict):
         """
@@ -190,17 +192,15 @@ if __name__ == "__main__":
     dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
     mapping_filename = "label_mapping_binary.json"
     preprocessing_config_filename = "preprocessing_config.json"
-    preprocessing_config_dict = load_json_from_configs(
-        preprocessing_config_filename)
-    
+
     # list of sensors to use
     sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
                "ChinCamRight", "HeadCamLeft", "HeadCamRight", "LeftCamLeft", "LeftCamRight", "RightCamLeft", "RightCamRight"]
-    
+
     # create list of transformations to perform (data preprocessing + failure case creation)
     transformations_list = []
-    transformations_list.append(FTDD_Crop(preprocessing_config_dict))
-    transformations_list.append(FTDD_Rescale(preprocessing_config_dict))
+    transformations_list.append(FTDD_Crop(preprocessing_config_filename))
+    transformations_list.append(FTDD_Rescale(preprocessing_config_filename))
     composed_transforms = transforms.Compose(transformations_list)
 
     # create dataset
@@ -213,6 +213,6 @@ if __name__ == "__main__":
             for sensor in sensors:
                 if "Cam" in sensor:
                     sample[sensor].show()
+                    break
                 else:
                     plot_IMU_data(sample[sensor], sensor)
-            break
