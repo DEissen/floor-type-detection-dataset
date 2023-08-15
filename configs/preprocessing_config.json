@@ -1,0 +1,93 @@
+{
+    "normalize_images": true,
+    "BellyCamLeft": {
+
+        "crop_top": 45,
+        "crop_bottom": 795,
+        "crop_left": 45,
+        "crop_right": 785,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "BellyCamRight": {
+        
+        "crop_top": 45,
+        "crop_bottom": 795,
+        "crop_left": 45,
+        "crop_right": 745,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "ChinCamLeft": {
+        
+        "crop_top": 70,
+        "crop_bottom": 680,
+        "crop_left": 145,
+        "crop_right": 705,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "ChinCamRight": {
+        
+        "crop_top": 65,
+        "crop_bottom": 675,
+        "crop_left": 230,
+        "crop_right": 770,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "HeadCamLeft": {
+        
+        "crop_top": 80,
+        "crop_bottom": 790,
+        "crop_left": 60,
+        "crop_right": 800,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "HeadCamRight": {
+        
+        "crop_top": 90,
+        "crop_bottom": 790,
+        "crop_left": 100,
+        "crop_right": 840,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "LeftCamLeft": {
+        
+        "crop_top": 0,
+        "crop_bottom": 800,
+        "crop_left": 100,
+        "crop_right": 780,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "LeftCamRight": {
+        
+        "crop_top": 0,
+        "crop_bottom": 800,
+        "crop_left": 120,
+        "crop_right": 800,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "RightCamLeft": {
+        
+        "crop_top": 0,
+        "crop_bottom": 800,
+        "crop_left": 80,
+        "crop_right": 770,
+        "final_height": 128,
+        "final_width": 128
+    },
+    "RightCamRight": {
+        
+        "crop_top": 0,
+        "crop_bottom": 800,
+        "crop_left": 80,
+        "crop_right": 770,
+        "final_height": 128,
+        "final_width": 128
+    }
+}

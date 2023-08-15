@@ -17,8 +17,8 @@ def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
         Returns:
             - (dict): Dictionary containing the closest timestamps for each camera and the earliest timestamp of the IMU measurements
     """
-    timestamps = {}  # struct to store all the timestamps
-    time_diffs = {}  # struct to store all time diffs
+    timestamps = {}  # dict to store all the timestamps
+    time_diffs = {}  # dict to store all time diffs
     checked_dirs = []  # list of checked dirs for debugging info
     camera_dir_found = False  # Flag for error detection
 
@@ -89,7 +89,7 @@ def get_closest_timestamp_for_camera(measurement_path, camera_name, measurement_
             - camera_name (str): name of the camera to check which is also the directory name
             - measurement_date (datetime.datetime): date of the measurement for the timestamp
             - reference_timestamp (datetime.datetime): reference timestamp for search
-            - time_diff_data (struct): struct containing the time_diff_data from the info.json
+            - time_diff_data (dict): dict containing the time_diff_data from the info.json
 
         Returns:
             - return values of function get_closest_timestamp()
@@ -254,17 +254,17 @@ def get_data_from_info_json_for_timestamp_evaluation(measurement_path):
 
         Returns:
             - measurement_date (datetime.datetime): datetime object of the date from the info.json file
-            - time_diff_data (struct): strut containing the time diff data
+            - time_diff_data (dict): strut containing the time diff data
     """
     json_path = os.path.join(measurement_path, "info.json")
 
     with open(json_path, "r") as f:
-        info_struct = json.load(f)
+        info_dict = json.load(f)
         measurement_date = datetime.strptime(
-            info_struct["measurement_date"], "%d.%m.%Y")
-        time_diff_data = {"time_diff_13_in_ms": info_struct["time_diff_13_in_ms"],
-                          "time_diff_14_in_ms": info_struct["time_diff_14_in_ms"],
-                          "time_diff_15_in_ms": info_struct["time_diff_15_in_ms"]}
+            info_dict["measurement_date"], "%d.%m.%Y")
+        time_diff_data = {"time_diff_13_in_ms": info_dict["time_diff_13_in_ms"],
+                          "time_diff_14_in_ms": info_dict["time_diff_14_in_ms"],
+                          "time_diff_15_in_ms": info_dict["time_diff_15_in_ms"]}
         return measurement_date, time_diff_data
 
 
@@ -399,8 +399,8 @@ def create_label_csv(measurement_path):
     json_path = os.path.join(measurement_path, "info.json")
 
     with open(json_path, "r") as f:
-        info_struct = json.load(f)
-        label = info_struct["floor type"]
+        info_dict = json.load(f)
+        label = info_dict["floor type"]
 
     # get all filenames from first dir in measurement
     for root, dirs, files in os.walk(measurement_path):

@@ -1,21 +1,21 @@
-# Datasheet for the wip_dataset_name dataset
-This README acts a a datasheet for the wip_dataset_name dataset.
+# Datasheet for Floor Type Detection Dataset (FTDD)
+This README acts a a datasheet for FTDD.
 
 # General Infos
-wip_dataset_name -  Version 0.0 \
+FTDD -  Version 0.0 \
 **Author:** Dominik Eißen \
 **Mail:** st177975@stud.uni-stuttgart.de
 
-# How to use the wip_dataset_name dataset?
+# How to use FTDD?
 Lorem ipsum
 
-# Folder structure of the wip_dataset_name dataset
+# Folder structure of FTDD
 dataset \
 |\
 --...
 
 # Details about dataset
-In this section you will find answers to several questions about the wip_dataset_name dataset. The questions are a subset of the questions proposed in the paper "Datasheets for Datasets" from T. Gebru et al. which can be found here: https://arxiv.org/pdf/1803.09010 \
+In this section you will find answers to several questions about FTDD. The questions are a subset of the questions proposed in the paper "Datasheets for Datasets" from T. Gebru et al. which can be found here: https://arxiv.org/pdf/1803.09010 \
 The purpose of this chapter is to hopefully answer all questions which could arise when using this dataset.
 ## Motivation
 ### **Q: For what purpose was the dataset created?**
