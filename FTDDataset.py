@@ -1,9 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
-import glob
 import json
 from PIL import Image
+import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
@@ -187,6 +187,33 @@ class FTDD_Rescale(object):
         return data_dict
 
 
+class ToTensor(object):
+    """
+        Class to convert images and numpy arrays to Tensors as final step for preprocessing of FTDD.
+    """
+
+    def __call__(self, data_dict: dict):
+        """
+            Method to convert all images and imu measurement in data_dict to Tensors.
+
+            Parameters:
+                - data_dict (dict): Dict containing one data sample from FTDD.
+        """
+        for sensor_name in data_dict.keys():
+            if "Cam" in sensor_name:
+                image = np.array(data_dict[sensor_name])
+                # swap color axis because
+                # numpy image: H x W x C
+                # torch image: C x H x W
+                image = image.transpose((2, 0, 1))
+                data_dict[sensor_name] = torch.from_numpy(image)
+            else:
+                imu_data = data_dict[sensor_name]
+                data_dict[sensor_name] = torch.from_numpy(imu_data)
+
+        return data_dict
+
+
 if __name__ == "__main__":
     # variables for dataset and config to use
     dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
@@ -201,6 +228,7 @@ if __name__ == "__main__":
     transformations_list = []
     transformations_list.append(FTDD_Crop(preprocessing_config_filename))
     transformations_list.append(FTDD_Rescale(preprocessing_config_filename))
+    transformations_list.append(ToTensor())
     composed_transforms = transforms.Compose(transformations_list)
 
     # create dataset
@@ -212,7 +240,10 @@ if __name__ == "__main__":
         if index == 0:
             for sensor in sensors:
                 if "Cam" in sensor:
-                    sample[sensor].show()
+                    image = sample[sensor]
+                    # plt.imshow(image.permute(1,2,0))
+                    # plt.show()
+                    print(type(image), image.shape)
                     break
                 else:
                     plot_IMU_data(sample[sensor], sensor)
