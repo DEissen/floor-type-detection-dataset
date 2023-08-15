@@ -218,6 +218,7 @@ class FTDD_ToTensor():
 
         return data_dict
 
+
 class FTDD_Normalize(FTDD_Transform_Superclass):
     def __call__(self, data_dict: dict):
         """
@@ -233,11 +234,13 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
         for sensor_name in data_dict.keys():
             if "Cam" in sensor_name:
                 if self.config_struct["normalize_images"]:
-                    data_dict[sensor_name] = np.array(data_dict[sensor_name]) / 255
+                    data_dict[sensor_name] = np.array(
+                        data_dict[sensor_name]) / 255
             else:
-                pass # IMU data is already normalized during data preparation
-        
+                pass  # IMU data is already normalized during data preparation
+
         return data_dict
+
 
 if __name__ == "__main__":
     # variables for dataset and config to use
@@ -261,8 +264,15 @@ if __name__ == "__main__":
     transformed_dataset = FloorTypeDetectionDataset(
         dataset_path, sensors, mapping_filename, transform=composed_transforms)
 
+    train_size = int(0.8 * len(transformed_dataset))
+    test_size = len(transformed_dataset) - train_size
+    train_dataset, test_dataset = torch.utils.data.random_split(
+        transformed_dataset, [train_size, test_size])
+
     # # loop for testing
-    # for index, (sample, label) in enumerate(transformed_dataset):
+    # ones = 0
+    # zeros =0
+    # for index, (sample, label) in enumerate(test_dataset):
     #     if index == 0:
     #         for sensor in sensors:
     #             if "Cam" in sensor:
@@ -273,8 +283,11 @@ if __name__ == "__main__":
     #             else:
     #                 # plot_IMU_data(sample[sensor], sensor)
     #                 pass
-    #         break
-
+    #     if label == 1:
+    #         ones +=1
+    #     else:
+    #         zeros +=1
+    # print(f"Test set contains {ones} ones and {zeros} zeros")
     # create dataloader
-    dataloader = DataLoader(transformed_dataset,
+    dataloader = DataLoader(test_dataset,
                             batch_size=8, shuffle=True, drop_last=True)
