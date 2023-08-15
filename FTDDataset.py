@@ -133,6 +133,9 @@ class FTDD_Crop(FTDD_Transform_Superclass):
 
             Parameters:
                 - data_dict (dict): Dict containing one data sample from FTDD.
+
+            Returns:
+                - data_dict (dict): Dict after cropping is applied.
         """
         # transform only needed for cameras, other data shall stay unchanged
         for sensor_name in data_dict.keys():
@@ -166,6 +169,9 @@ class FTDD_Rescale(FTDD_Transform_Superclass):
 
             Parameters:
                 - data_dict (dict): Dict containing one data sample from FTDD.
+
+            Returns:
+                - data_dict (dict): Dict after rescaling is applied.
         """
         # transform only needed for cameras, other data shall stay unchanged
         for sensor_name in data_dict.keys():
@@ -183,7 +189,7 @@ class FTDD_Rescale(FTDD_Transform_Superclass):
         return data_dict
 
 
-class ToTensor():
+class FTDD_ToTensor():
     """
         Class to convert images and numpy arrays to Tensors as final step for preprocessing of FTDD.
     """
@@ -194,6 +200,9 @@ class ToTensor():
 
             Parameters:
                 - data_dict (dict): Dict containing one data sample from FTDD.
+
+            Returns:
+                - data_dict (dict): Dict after transform is applied.
         """
         for sensor_name in data_dict.keys():
             if "Cam" in sensor_name:
@@ -209,6 +218,26 @@ class ToTensor():
 
         return data_dict
 
+class FTDD_Normalize(FTDD_Transform_Superclass):
+    def __call__(self, data_dict: dict):
+        """
+            Method to normalize all images data_dict by dividing through 255 and converts PIL image to np.array.
+            Note: Normalization for IMU data is already handled in data preparation step and thus not necessary. 
+
+            Parameters:
+                - data_dict (dict): Dict containing one data sample from FTDD.
+
+            Returns:
+                - data_dict (dict): Dict after normalization is applied.
+        """
+        for sensor_name in data_dict.keys():
+            if "Cam" in sensor_name:
+                if self.config_struct["normalize_images"]:
+                    data_dict[sensor_name] = np.array(data_dict[sensor_name]) / 255
+            else:
+                pass # IMU data is already normalized during data preparation
+        
+        return data_dict
 
 if __name__ == "__main__":
     # variables for dataset and config to use
@@ -224,7 +253,8 @@ if __name__ == "__main__":
     transformations_list = []
     transformations_list.append(FTDD_Crop(preprocessing_config_filename))
     transformations_list.append(FTDD_Rescale(preprocessing_config_filename))
-    transformations_list.append(ToTensor())
+    transformations_list.append(FTDD_Normalize(preprocessing_config_filename))
+    transformations_list.append(FTDD_ToTensor())
     composed_transforms = transforms.Compose(transformations_list)
 
     # create dataset
@@ -237,12 +267,12 @@ if __name__ == "__main__":
     #         for sensor in sensors:
     #             if "Cam" in sensor:
     #                 image = sample[sensor]
-    #                 plt.imshow(image.permute(1, 2, 0))
-    #                 plt.show()
-    #                 # print(type(image), image.shape)
-    #                 break
+    #                 # plt.imshow(image.permute(1, 2, 0))
+    #                 # plt.show()
+    #                 print(type(image), image.shape, torch.max(image))
     #             else:
-    #                 plot_IMU_data(sample[sensor], sensor)
+    #                 # plot_IMU_data(sample[sensor], sensor)
+    #                 pass
     #         break
 
     # create dataloader

@@ -1,4 +1,5 @@
 {
+    "normalize_images": true,
     "BellyCamLeft": {
 
         "crop_top": 45,
