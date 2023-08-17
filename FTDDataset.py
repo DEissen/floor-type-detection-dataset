@@ -22,7 +22,7 @@ class FloorTypeDetectionDataset(Dataset):
         Dataset class for FTDD (Floor Type Detection Dataset).
     """
 
-    def __init__(self, root_dir, sensors, mapping_filename, transform=None):
+    def __init__(self, root_dir, sensors, mapping_filename, preprocessing_config_filename):
         """
             Constructor for FloorTypeDetectionDataset class.
 
@@ -30,11 +30,12 @@ class FloorTypeDetectionDataset(Dataset):
                 - root_dir (str): Path to dataset
                 - sensors (list): List of all sensors which shall be considered for this dataset
                 - mapping_filename (str): filename of the label mapping JSON file
-                - transform (torchvision.transforms.Compose): Composed transforms for the data for preprocessing and failure case creation
+                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir 
         """
         self.root_dir = root_dir
         self.sensors = sensors
-        self.transform = transform
+        self.preprocessing_config_filename = preprocessing_config_filename
+        self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
         self.label_mapping_dict = load_json_from_configs(mapping_filename)
@@ -42,6 +43,32 @@ class FloorTypeDetectionDataset(Dataset):
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
             root_dir, "labels.csv"), sep=";", header=0).to_numpy()
+
+    def __get_composed_transforms(self):
+        """
+            Private method to configure transformation for dataset based on self.preprocessing_config_filename.
+
+            Returns:
+                (torchvision.transforms.Compose): Composed transforms for the data for preprocessing and failure case creation
+        """
+        # create list of transformations to perform (data preprocessing + failure case creation)
+        transformations_list = []
+
+        ### Image preprocessing
+        transformations_list.append(
+            FTDD_Crop(self.preprocessing_config_filename))
+        transformations_list.append(FTDD_Rescale(
+            self.preprocessing_config_filename))
+        transformations_list.append(FTDD_Normalize(
+            self.preprocessing_config_filename))
+        
+        ### Failure case creation
+        # TODO
+        
+        ### Transform PIL images and numpy arrays to torch Tensors as final step
+        transformations_list.append(FTDD_ToTensor())
+
+        return transforms.Compose(transformations_list)
 
     def __getitem__(self, index):
         """
@@ -68,9 +95,8 @@ class FloorTypeDetectionDataset(Dataset):
                     self.root_dir, sensor, self.filenames_labels_array[index, 0]+".csv")
                 data_dict[sensor] = np.loadtxt(file_path, delimiter=";")
 
-        # perform preprocessing/ transform for data dict if configured
-        if self.transform:
-            data_dict = self.transform(data_dict)
+        # perform preprocessing/ transform for data dict
+        data_dict = self.transform(data_dict)
 
         # get the label for the index
         label = self.filenames_labels_array[index, 1]
@@ -255,17 +281,9 @@ if __name__ == "__main__":
     sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
                "ChinCamRight", "HeadCamLeft", "HeadCamRight", "LeftCamLeft", "LeftCamRight", "RightCamLeft", "RightCamRight"]
 
-    # create list of transformations to perform (data preprocessing + failure case creation)
-    transformations_list = []
-    transformations_list.append(FTDD_Crop(preprocessing_config_filename))
-    transformations_list.append(FTDD_Rescale(preprocessing_config_filename))
-    transformations_list.append(FTDD_Normalize(preprocessing_config_filename))
-    transformations_list.append(FTDD_ToTensor())
-    composed_transforms = transforms.Compose(transformations_list)
-
     # create dataset
     transformed_dataset = FloorTypeDetectionDataset(
-        dataset_path, sensors, mapping_filename, transform=composed_transforms)
+        dataset_path, sensors, mapping_filename, preprocessing_config_filename)
 
     train_size = int(0.8 * len(transformed_dataset))
     test_size = len(transformed_dataset) - train_size
@@ -293,6 +311,6 @@ if __name__ == "__main__":
     # print(f"Test set contains {ones} ones and {zeros} zeros")
     # create dataloader
     train_dataloader = DataLoader(train_dataset,
-                            batch_size=8, shuffle=True, drop_last=True)
+                                  batch_size=8, shuffle=True, drop_last=True)
     test_dataloader = DataLoader(test_dataset,
-                            batch_size=8, shuffle=True, drop_last=True)
+                                 batch_size=8, shuffle=True, drop_last=True)
