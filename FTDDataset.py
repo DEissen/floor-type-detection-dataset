@@ -68,6 +68,9 @@ class FloorTypeDetectionDataset(Dataset):
         ### Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
 
+        # save preprocessing config dict for logging from first transform
+        self.preprocessing_config_dict = transformations_list[0].get_config_dict()
+
         return transforms.Compose(transformations_list)
 
     def __getitem__(self, index):
@@ -102,6 +105,24 @@ class FloorTypeDetectionDataset(Dataset):
         label = self.filenames_labels_array[index, 1]
 
         return (data_dict, self.label_mapping_dict[label])
+    
+    def get_mapping_dict(self):
+        """
+            Getter method to get label to number mapping dict self.label_mapping_dict.
+
+            Returns:
+                - self.label_mapping_dict (dict): Dict containing label to number mapping
+        """
+        return self.label_mapping_dict
+
+    def get_preprocessing_config(self):
+        """
+            Getter method to get loaded self.config_dict.
+
+            Returns:
+                - self.config_dict (dict): Dict containing config for preprocessing/ transforms
+        """
+        return self.preprocessing_config_dict
 
     def __len__(self):
         """
@@ -147,6 +168,14 @@ class FTDD_Transform_Superclass():
         self.config_dict = load_json_from_configs(
             preprocessing_config_filename)
 
+    def get_config_dict(self):
+        """
+            Getter method to get loaded self.config_dict.
+
+            Returns:
+                - self.config_dict (dict): Dict containing config for preprocessing/ transforms
+        """
+        return self.config_dict
 
 class FTDD_Crop(FTDD_Transform_Superclass):
     """
