@@ -269,10 +269,12 @@ class FTDD_ToTensor():
                 data_dict[sensor_name] = torch.from_numpy(image)
             else:
                 imu_data = data_dict[sensor_name]
-                # swap feature axis because (D = data)
+                # swap feature axis because (D = data, C = channels)
                 # numpy data: D x C
                 # torch image: C x D
-                imu_data = imu_data.transpose((1, 0))
+                if len(np.shape(imu_data)) > 1:
+                    # swapping is only needed if multiple feature channels are there
+                    imu_data = imu_data.transpose((1, 0))
                 data_dict[sensor_name] = torch.tensor(torch.from_numpy(imu_data), dtype=torch.float32)
 
         return data_dict
