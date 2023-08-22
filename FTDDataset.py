@@ -9,8 +9,8 @@ from torchvision import transforms
 
 
 # for testing
-# from visualization.visualizeTimeseriesData import plot_IMU_data
-# import matplotlib.pyplot as plt
+from visualization.visualizeTimeseriesData import plot_IMU_data
+import matplotlib.pyplot as plt
 
 # Ignore warnings
 import warnings
@@ -22,7 +22,7 @@ class FloorTypeDetectionDataset(Dataset):
         Dataset class for FTDD (Floor Type Detection Dataset).
     """
 
-    def __init__(self, root_dir, sensors, mapping_filename, preprocessing_config_filename):
+    def __init__(self, root_dir, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename=""):
         """
             Constructor for FloorTypeDetectionDataset class.
 
@@ -31,10 +31,12 @@ class FloorTypeDetectionDataset(Dataset):
                 - sensors (list): List of all sensors which shall be considered for this dataset
                 - mapping_filename (str): filename of the label mapping JSON file
                 - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir 
+                - faulty_data_creation_config_filename (str): Default = "". Name of the faulty data creation JSON file in the configs/ dir 
         """
         self.root_dir = root_dir
         self.sensors = sensors
         self.preprocessing_config_filename = preprocessing_config_filename
+        self.faulty_data_creation_config_filename = faulty_data_creation_config_filename
         self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
@@ -54,18 +56,21 @@ class FloorTypeDetectionDataset(Dataset):
         # create list of transformations to perform (data preprocessing + failure case creation)
         transformations_list = []
 
-        ### Image preprocessing
+        # ## Creating faulty data according to fault config before image preprocessing, if fault config was provided
+        if self.faulty_data_creation_config_filename != "":
+            # only add class for faulty data creation if a path was added
+            transformations_list.append(FTDD_CreateFaultyData(
+                self.faulty_data_creation_config_filename))
+
+        # ## Image preprocessing
         transformations_list.append(
             FTDD_Crop(self.preprocessing_config_filename))
         transformations_list.append(FTDD_Rescale(
             self.preprocessing_config_filename))
         transformations_list.append(FTDD_Normalize(
             self.preprocessing_config_filename))
-        
-        ### Failure case creation
-        # TODO
-        
-        ### Transform PIL images and numpy arrays to torch Tensors as final step
+
+        # ## Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
 
         # save preprocessing config dict for logging from first transform
@@ -105,7 +110,7 @@ class FloorTypeDetectionDataset(Dataset):
         label = self.filenames_labels_array[index, 1]
 
         return (data_dict, self.label_mapping_dict[label])
-    
+
     def get_mapping_dict(self):
         """
             Getter method to get label to number mapping dict self.label_mapping_dict.
@@ -158,15 +163,15 @@ class FTDD_Transform_Superclass():
         Superclass for all transform classes for FTDD. Provides __init__() method to load config.
     """
 
-    def __init__(self, preprocessing_config_filename):
+    def __init__(self, config_filename):
         """
             Constructor for FTDD_Crop class.
 
             Parameters:
-                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir
+                - config_filename (str): Name of the config JSON file in the configs/ dir
         """
         self.config_dict = load_json_from_configs(
-            preprocessing_config_filename)
+            config_filename)
 
     def get_config_dict(self):
         """
@@ -176,6 +181,63 @@ class FTDD_Transform_Superclass():
                 - self.config_dict (dict): Dict containing config for preprocessing/ transforms
         """
         return self.config_dict
+
+
+class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
+    """
+        Class to create faulty data by adding noise, ... to the data.
+    """
+
+    def __call__(self, data_dict: dict):
+        """
+            Method to create faulty data in data_dict according to the config from self.config_dict.
+
+            Parameters:
+                - data_dict (dict): Dict containing one data sample from FTDD.
+
+            Returns:
+                - data_dict (dict): Dict after cropping is applied.
+        """
+        # modify data only in case create_faulty_data flag is set in config dict
+        if self.config_dict["create_faulty_data"]:
+            # iterate over the complete data_dict
+            for sensor_name in data_dict.keys():
+                # handle images and timeseries data separately
+                if "Cam" in sensor_name:
+                    data_dict[sensor_name] = self.__handle_images__(
+                        data_dict[sensor_name], sensor_name)
+                else:
+                    data_dict[sensor_name] = self.__handle_timeseries_data__(
+                        data_dict[sensor_name], sensor_name)
+
+        return data_dict
+
+    def __handle_timeseries_data__(self, data, sensor):
+        """
+            Method to modify provided timeseries data according to the config from self.config_dict for sensor.
+
+            Parameters:
+                - data (np.array): Data sample from FTDD for sensor
+                - sensors (str): Name of the sensor
+
+            Returns:
+                - data (np.array): Modified data
+        """
+        return data
+
+    def __handle_images__(self, image, sensor):
+        """
+            Method to modify provided images according to the config from self.config_dict for sensor.
+
+            Parameters:
+                - image (PIL.image): Image from FTDD for sensor
+                - sensors (str): Name of the sensor
+
+            Returns:
+                - image (PIL.image): Modified image
+        """
+        return image
+
 
 class FTDD_Crop(FTDD_Transform_Superclass):
     """
@@ -277,7 +339,8 @@ class FTDD_ToTensor():
                     imu_data = np.expand_dims(imu_data, 1)
                     # swapping is only needed if multiple feature channels are there
                 imu_data = imu_data.transpose((1, 0))
-                data_dict[sensor_name] = torch.tensor(torch.from_numpy(imu_data), dtype=torch.float32)
+                data_dict[sensor_name] = torch.tensor(
+                    torch.from_numpy(imu_data), dtype=torch.float32)
 
         return data_dict
 
@@ -313,6 +376,7 @@ if __name__ == "__main__":
     dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
     mapping_filename = "label_mapping_binary.json"
     preprocessing_config_filename = "preprocessing_config.json"
+    faulty_data_creation_config_filename = "faulty_data_creation_config.json"
 
     # list of sensors to use
     sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
@@ -321,33 +385,39 @@ if __name__ == "__main__":
     # create dataset
     transformed_dataset = FloorTypeDetectionDataset(
         dataset_path, sensors, mapping_filename, preprocessing_config_filename)
+    faulty_dataset = FloorTypeDetectionDataset(
+        dataset_path, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename)
 
-    train_size = int(0.8 * len(transformed_dataset))
-    test_size = len(transformed_dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        transformed_dataset, [train_size, test_size])
 
-    # # loop for testing
-    # ones = 0
-    # zeros =0
-    # for index, (sample, label) in enumerate(test_dataset):
-    #     if index == 0:
-    #         for sensor in sensors:
-    #             if "Cam" in sensor:
-    #                 image = sample[sensor]
-    #                 # plt.imshow(image.permute(1, 2, 0))
-    #                 # plt.show()
-    #                 print(type(image), image.shape, torch.max(image))
-    #             else:
-    #                 # plot_IMU_data(sample[sensor], sensor)
-    #                 pass
-    #     if label == 1:
-    #         ones +=1
-    #     else:
-    #         zeros +=1
-    # print(f"Test set contains {ones} ones and {zeros} zeros")
+    # train_size = int(0.8 * len(transformed_dataset))
+    # test_size = len(transformed_dataset) - train_size
+    # train_dataset, test_dataset = torch.utils.data.random_split(
+    #     transformed_dataset, [train_size, test_size])
+
+    # loop for testing
+    ones = 0
+    zeros =0
+    for index, (sample, label) in enumerate(transformed_dataset):
+        if index == 20:
+            for sensor in sensors:
+                if "Cam" in sensor:
+                    image = sample[sensor]
+                    plt.imshow(image.permute(1, 2, 0))
+                    plt.show()
+
+                    # print same image of faulty dataset
+                    (sample, label) = faulty_dataset.__getitem__(index)
+                    faulty_image = sample[sensor]
+                    plt.imshow(faulty_image.permute(1, 2, 0))
+                    plt.show()
+                    break
+                else:
+                    # plot_IMU_data(sample[sensor], sensor)
+                    pass
+            break
+
     # create dataloader
-    train_dataloader = DataLoader(train_dataset,
-                                  batch_size=8, shuffle=True, drop_last=True)
-    test_dataloader = DataLoader(test_dataset,
-                                 batch_size=8, shuffle=True, drop_last=True)
+    normal_dataloader = DataLoader(transformed_dataset,
+                                  batch_size=8, shuffle=False, drop_last=True)
+    faulty_dataloader = DataLoader(faulty_dataset,
+                                 batch_size=8, shuffle=False, drop_last=True)

@@ -1,0 +1,23 @@
+{
+    "create_faulty_data": true,
+    "BellyCamLeft": {
+    },
+    "BellyCamRight": {
+    },
+    "ChinCamLeft": {
+    },
+    "ChinCamRight": {
+    },
+    "HeadCamLeft": {
+    },
+    "HeadCamRight": {
+    },
+    "LeftCamLeft": {
+    },
+    "LeftCamRight": {
+    },
+    "RightCamLeft": {
+    },
+    "RightCamRight": {
+    }
+}
