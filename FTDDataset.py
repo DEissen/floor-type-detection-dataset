@@ -7,6 +7,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
+# custom imports
+from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
+from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
 
 # for testing
 from visualization.visualizeTimeseriesData import plot_IMU_data
@@ -205,14 +208,14 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
                 # handle images and timeseries data separately
                 if "Cam" in sensor_name:
                     data_dict[sensor_name] = self.__handle_images__(
-                        data_dict[sensor_name], sensor_name)
+                        data_dict[sensor_name])
                 else:
                     data_dict[sensor_name] = self.__handle_timeseries_data__(
-                        data_dict[sensor_name], sensor_name)
+                        data_dict[sensor_name])
 
         return data_dict
 
-    def __handle_timeseries_data__(self, data, sensor):
+    def __handle_timeseries_data__(self, data):
         """
             Method to modify provided timeseries data according to the config from self.config_dict for sensor.
 
@@ -223,9 +226,25 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
             Returns:
                 - data (np.array): Modified data
         """
+        selection_value = torch.rand(1)
+
+        if selection_value < 0.15:
+            data = offset_failure(
+                data, self.config_dict["timeseries"]["offset_min"], self.config_dict["timeseries"]["offset_max"])
+        elif selection_value < 0.3:
+            data = drifting_failure(
+                data, self.config_dict["timeseries"]["drifting_min"], self.config_dict["timeseries"]["drifting_max"])
+        elif selection_value < 0.45:
+            data = precision_degradation(
+                data, self.config_dict["timeseries"]["prec_deg_var"])
+        elif selection_value < 0.6:
+            data = total_failure(
+                data, self.config_dict["timeseries"]["total_failure_value"])
+        else:
+            pass
         return data
 
-    def __handle_images__(self, image, sensor):
+    def __handle_images__(self, image):
         """
             Method to modify provided images according to the config from self.config_dict for sensor.
 
@@ -236,6 +255,19 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
             Returns:
                 - image (PIL.image): Modified image
         """
+        selection_value = torch.rand(1)
+
+        if selection_value < 0.2:
+            image = change_brightness(
+                image, self.config_dict["images"]["brightness_min"], self.config_dict["images"]["brightness_max"])
+        elif selection_value < 0.4:
+            image = change_contrast(
+                image, self.config_dict["images"]["contrast_min"], self.config_dict["images"]["contrast_max"])
+        elif selection_value < 0.6:
+            image = change_sharpness(
+                image, self.config_dict["images"]["sharpness_min"], self.config_dict["images"]["sharpness_max"])
+        else:
+            pass
         return image
 
 
@@ -388,22 +420,28 @@ if __name__ == "__main__":
     faulty_dataset = FloorTypeDetectionDataset(
         dataset_path, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename)
 
-
     # train_size = int(0.8 * len(transformed_dataset))
     # test_size = len(transformed_dataset) - train_size
     # train_dataset, test_dataset = torch.utils.data.random_split(
     #     transformed_dataset, [train_size, test_size])
 
     # loop for testing
-    ones = 0
-    zeros =0
     for index, (sample, label) in enumerate(transformed_dataset):
         if index == 20:
             for sensor in sensors:
+                if not "Cam" in sensor:
+                    data = sample[sensor]
+                    x = np.arange(0, data.size()[1])
+                    plt.plot(x, data.transpose(1,0))
+                    
+                    (sample, label) = faulty_dataset.__getitem__(index)
+                    faulty_data = sample[sensor]
+                    plt.plot(x, faulty_data.transpose(1,0))
+                    plt.show()
                 if "Cam" in sensor:
                     image = sample[sensor]
-                    plt.imshow(image.permute(1, 2, 0))
-                    plt.show()
+                    # plt.imshow(image.permute(1, 2, 0))
+                    # plt.show()
 
                     # print same image of faulty dataset
                     (sample, label) = faulty_dataset.__getitem__(index)
@@ -418,6 +456,6 @@ if __name__ == "__main__":
 
     # create dataloader
     normal_dataloader = DataLoader(transformed_dataset,
-                                  batch_size=8, shuffle=False, drop_last=True)
+                                   batch_size=8, shuffle=False, drop_last=True)
     faulty_dataloader = DataLoader(faulty_dataset,
-                                 batch_size=8, shuffle=False, drop_last=True)
+                                   batch_size=8, shuffle=False, drop_last=True)

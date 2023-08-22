@@ -1,23 +1,19 @@
 {
-    "create_faulty_data": true,
-    "BellyCamLeft": {
+    "create_faulty_data": false,
+    "images": {
+        "brightness_min": 1.75,
+        "brightness_max": 3,
+        "contrast_min": 2,
+        "contrast_max": 5,
+        "sharpness_min": 7,
+        "sharpness_max": 15
     },
-    "BellyCamRight": {
-    },
-    "ChinCamLeft": {
-    },
-    "ChinCamRight": {
-    },
-    "HeadCamLeft": {
-    },
-    "HeadCamRight": {
-    },
-    "LeftCamLeft": {
-    },
-    "LeftCamRight": {
-    },
-    "RightCamLeft": {
-    },
-    "RightCamRight": {
+    "timeseries": {
+        "offset_min": -0.5,
+        "offset_max": 0.5,
+        "drifting_min": -0.015,
+        "drifting_max": 0.015,
+        "prec_deg_var": 0.2,
+        "total_failure_value": 0
     }
 }

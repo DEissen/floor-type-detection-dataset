@@ -3,12 +3,14 @@ import matplotlib.pyplot as plt
 
 
 
-def offset_failure(data, offset):
+def offset_failure(data, min, max):
+    offset = np.random.uniform(min, max)
     return data + offset
 
 
-def drifting_failure(data, factor):
+def drifting_failure(data, min, max):
     modified_data = []
+    factor = np.random.uniform(min, max)
 
     for i in range(np.shape(data)[0]):
         modified_data.append(data[i] + factor * i)
@@ -16,11 +18,11 @@ def drifting_failure(data, factor):
     return np.asarray(modified_data)
 
 
-def precision_degradation(data, min, max):
+def precision_degradation(data, var):
     modified_data = []
 
     for i in range(np.shape(data)[0]):
-        random = np.random.uniform(min, max)
+        random = np.random.normal(0, var)
         modified_data.append(data[i] + random)
 
     return np.asarray(modified_data)
