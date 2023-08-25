@@ -6,14 +6,18 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+import matplotlib.pyplot as plt
+
 
 # custom imports
-from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
-from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
-
-# for testing
-from visualization.visualizeTimeseriesData import plot_IMU_data
-import matplotlib.pyplot as plt
+if __name__ == "__main__":
+    from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
+    from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
+    from visualization.visualizeTimeseriesData import plot_IMU_data
+else:
+    from FTDDataset.failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
+    from FTDDataset.failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
+    from FTDDataset.visualization.visualizeTimeseriesData import plot_IMU_data
 
 # Ignore warnings
 import warnings
