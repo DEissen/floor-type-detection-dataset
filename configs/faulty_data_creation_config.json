@@ -1,19 +1,26 @@
 {
     "create_faulty_data": false,
     "images": {
+        "Cams for brightness": [""],
         "brightness_min": 1.75,
         "brightness_max": 3,
+        "Cams for contrast": [""],
         "contrast_min": 2,
         "contrast_max": 5,
+        "Cams for sharpness": [""],
         "sharpness_min": 7,
         "sharpness_max": 15
     },
     "timeseries": {
+        "Sensors for offset": [""],
         "offset_min": -0.5,
         "offset_max": 0.5,
+        "Sensors for drifting": [""],
         "drifting_min": -0.015,
         "drifting_max": 0.015,
+        "Sensors for prec deg": [""],
         "prec_deg_var": 0.2,
+        "Sensors for tot fail": [""],
         "total_failure_value": 0
     }
 }

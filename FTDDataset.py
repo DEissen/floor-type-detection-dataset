@@ -77,7 +77,8 @@ class FloorTypeDetectionDataset(Dataset):
         transformations_list.append(FTDD_ToTensor())
 
         # save preprocessing config dict for logging from first transform
-        self.preprocessing_config_dict = transformations_list[0].get_config_dict()
+        self.preprocessing_config_dict = transformations_list[0].get_config_dict(
+        )
 
         return transforms.Compose(transformations_list)
 
@@ -208,26 +209,78 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
                 # handle images and timeseries data separately
                 if "Cam" in sensor_name:
                     data_dict[sensor_name] = self.__handle_images__(
-                        data_dict[sensor_name])
+                        data_dict[sensor_name], sensor_name)
                 else:
                     data_dict[sensor_name] = self.__handle_timeseries_data__(
-                        data_dict[sensor_name])
+                        data_dict[sensor_name], sensor_name)
 
         return data_dict
 
-    def __handle_timeseries_data__(self, data):
+    def __handle_images__(self, image, sensor_name):
+        """
+            Method to modify provided images according to the config from self.config_dict for sensor.
+
+            Parameters:
+                - image (PIL.image): Image from FTDD for sensor
+                - sensor_name (str): Name of the sensor
+
+            Returns:
+                - image (PIL.image): Modified image
+        """
+        if sensor_name in self.config_dict['images']["Cams for brightness"]:
+            image = change_brightness(
+                image, self.config_dict["images"]["brightness_min"], self.config_dict["images"]["brightness_max"])
+        elif sensor_name in self.config_dict['images']["Cams for contrast"]:
+            image = change_contrast(
+                image, self.config_dict["images"]["contrast_min"], self.config_dict["images"]["contrast_max"])
+        elif sensor_name in self.config_dict['images']["Cams for sharpness"]:
+            image = change_sharpness(
+                image, self.config_dict["images"]["sharpness_min"], self.config_dict["images"]["sharpness_max"])
+
+        return image
+
+    def __handle_timeseries_data__(self, data, sensor_name):
         """
             Method to modify provided timeseries data according to the config from self.config_dict for sensor.
 
             Parameters:
                 - data (np.array): Data sample from FTDD for sensor
-                - sensors (str): Name of the sensor
+                - sensor_name (str): Name of the sensor
 
             Returns:
                 - data (np.array): Modified data
         """
-        selection_value = torch.rand(1)
+        if sensor_name in set(self.config_dict["timeseries"]["Sensors for offset"]):
+            data = offset_failure(
+                data, self.config_dict["timeseries"]["offset_min"], self.config_dict["timeseries"]["offset_max"])
+        elif sensor_name in self.config_dict["timeseries"]["Sensors for drifting"]:
+            data = drifting_failure(
+                data, self.config_dict["timeseries"]["drifting_min"], self.config_dict["timeseries"]["drifting_max"])
+        elif sensor_name in self.config_dict["timeseries"]["Sensors for prec deg"]:
+            data = precision_degradation(
+                data, self.config_dict["timeseries"]["prec_deg_var"])
+        elif sensor_name in self.config_dict["timeseries"]["Sensors for tot fail"]:
+            data = total_failure(
+                data, self.config_dict["timeseries"]["total_failure_value"])
+        else:
+            pass
 
+        return data
+
+    def __handle_timeseries_data_randomly__(self, data, sensor_name):
+        """
+            Method to modify provided timeseries data according to the config from self.config_dict for sensor.
+            NOTE: Currently unused!
+
+            Parameters:
+                - data (np.array): Data sample from FTDD for sensor
+                - sensor_name (str): Name of the sensor
+
+            Returns:
+                - data (np.array): Modified data
+        """
+        # randomly select one of three possible faults with 15% chance each
+        selection_value = torch.rand(1)
         if selection_value < 0.15:
             data = offset_failure(
                 data, self.config_dict["timeseries"]["offset_min"], self.config_dict["timeseries"]["offset_max"])
@@ -244,19 +297,20 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
             pass
         return data
 
-    def __handle_images__(self, image):
+    def __handle_images_randomly__(self, image, sensor_name):
         """
             Method to modify provided images according to the config from self.config_dict for sensor.
+            NOTE: Currently unused!
 
             Parameters:
                 - image (PIL.image): Image from FTDD for sensor
-                - sensors (str): Name of the sensor
+                - sensor_name (str): Name of the sensor
 
             Returns:
                 - image (PIL.image): Modified image
         """
+        # randomly select one of three possible faults with 20% chance each
         selection_value = torch.rand(1)
-
         if selection_value < 0.2:
             image = change_brightness(
                 image, self.config_dict["images"]["brightness_min"], self.config_dict["images"]["brightness_max"])
@@ -411,8 +465,9 @@ if __name__ == "__main__":
     faulty_data_creation_config_filename = "faulty_data_creation_config.json"
 
     # list of sensors to use
-    sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
-               "ChinCamRight", "HeadCamLeft", "HeadCamRight", "LeftCamLeft", "LeftCamRight", "RightCamLeft", "RightCamRight"]
+    sensors = ["accelerometer", "BellyCamRight"]
+    # sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
+    #            "ChinCamRight", "HeadCamLeft", "HeadCamRight", "LeftCamLeft", "LeftCamRight", "RightCamLeft", "RightCamRight"]
 
     # create dataset
     transformed_dataset = FloorTypeDetectionDataset(
@@ -432,11 +487,11 @@ if __name__ == "__main__":
                 if not "Cam" in sensor:
                     data = sample[sensor]
                     x = np.arange(0, data.size()[1])
-                    plt.plot(x, data.transpose(1,0))
-                    
+                    plt.plot(x, data.transpose(1, 0))
+
                     (sample, label) = faulty_dataset.__getitem__(index)
                     faulty_data = sample[sensor]
-                    plt.plot(x, faulty_data.transpose(1,0))
+                    plt.plot(x, faulty_data.transpose(1, 0))
                     plt.show()
                 if "Cam" in sensor:
                     image = sample[sensor]
