@@ -1,6 +1,7 @@
 # custom excludes
 temp/
 results/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
