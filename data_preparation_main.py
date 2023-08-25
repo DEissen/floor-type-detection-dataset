@@ -1,5 +1,6 @@
 import os
 import gin
+import shutil
 
 # custom imports
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir
@@ -42,9 +43,9 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
 
     # get starting timestamp for sliding windows
     measurement_timestamp, _ = get_data_from_info_json_for_timestamp_evaluation(
-        measurement_path)
+        temp_path)
     earliest_timestamp = get_earliest_timestamp_from_IMU(
-        measurement_path, measurement_timestamp)
+        temp_path, measurement_timestamp)
     # create sliding windows 
     for sensor in timeseries_downsampler.timeseries_sensors:
         create_sliding_windows_and_save_them(
@@ -76,6 +77,10 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
         # clean results/ dir if it shall be used
         clean_results_dir()
     copy_prepared_dataset(dataset_path)
+
+    print("\n\n### Step 6: Copy datasheed.md to results dir ###")
+    shutil.copy("./datasheet.md", "./results/")
+    print("datasheet.md was copied to ./results/")
 
     # uncomment to check how data looks after preparation step
     # visualize_result(window_size)
