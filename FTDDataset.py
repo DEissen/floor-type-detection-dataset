@@ -35,6 +35,7 @@ class FloorTypeDetectionDataset(Dataset):
                 - mapping_filename (str): filename of the label mapping JSON file
                 - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir 
                 - faulty_data_creation_config_filename (str): Default = "". Name of the faulty data creation JSON file in the configs/ dir 
+                                                              If empty string is provided, no data modification will happen.
         """
         self.root_dir = root_dir
         self.sensors = sensors
@@ -77,8 +78,7 @@ class FloorTypeDetectionDataset(Dataset):
         transformations_list.append(FTDD_ToTensor())
 
         # save preprocessing config dict for logging from first transform
-        self.preprocessing_config_dict = transformations_list[0].get_config_dict(
-        )
+        self.preprocessing_config_dict = transformations_list[0].get_config_dict()
 
         return transforms.Compose(transformations_list)
 
