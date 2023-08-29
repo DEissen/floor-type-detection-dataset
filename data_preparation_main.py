@@ -7,6 +7,7 @@ from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_pr
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps, remove_obsolete_data_at_end, create_label_csv, get_earliest_timestamp_from_IMU, get_data_from_info_json_for_timestamp_evaluation
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
+from data_preparation.incomplete_data_cleanup import get_incomplete_data_samples, delete_incomplete_data_samples, update_labels_csv
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
 
@@ -72,13 +73,20 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     print("\n\n### Step 6: Create labels csv file ###")
     create_label_csv(temp_path)
 
-    print("\n\n### Step 7: Copy prepared dataset ###")
+    print("\n\n### Step 7: Remove incomplete data samples ###")
+    incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(dataset_path)
+    print(f"The following files were expected but missing: {complete_incomplete_samples_list}. This should be checked!")
+    delete_incomplete_data_samples(dataset_path, incomplete_samples_list)
+    update_labels_csv(dataset_path, incomplete_samples_list)
+    print("Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
+
+    print("\n\n### Step 8: Copy prepared dataset ###")
     if dataset_path == None:
         # clean results/ dir if it shall be used
         clean_results_dir()
     copy_prepared_dataset(dataset_path)
 
-    print("\n\n### Step 6: Copy datasheed.md to results dir ###")
+    print("\n\n### Step 9: Copy datasheed.md to results dir ###")
     shutil.copy("./datasheet.md", "./results/")
     print("datasheet.md was copied to ./results/")
 
