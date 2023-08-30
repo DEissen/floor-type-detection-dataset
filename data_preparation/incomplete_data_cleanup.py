@@ -83,7 +83,6 @@ def delete_incomplete_data_samples(dataset_path, incomplete_samples_set):
             # use try/except, to handle case where file is already missing (which is always the case for at least sensor)
             try:
                 os.remove(filename)
-                print("Deleted something")
             except:
                 pass
 

@@ -74,10 +74,13 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     create_label_csv(temp_path)
 
     print("\n\n### Step 7: Remove incomplete data samples ###")
-    incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(dataset_path)
-    print(f"The following files were expected but missing: {complete_incomplete_samples_list}. This should be checked!")
-    delete_incomplete_data_samples(dataset_path, incomplete_samples_list)
-    update_labels_csv(dataset_path, incomplete_samples_list)
+    incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(temp_path)
+    print(f"The files for the following timestamps will be deleted now:")
+    # log info about missing files
+    for incomplete_samples in complete_incomplete_samples_list:
+        print(incomplete_samples)
+    delete_incomplete_data_samples(temp_path, incomplete_samples_list)
+    update_labels_csv(temp_path, incomplete_samples_list)
     print("Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
 
     print("\n\n### Step 8: Copy prepared dataset ###")
@@ -119,6 +122,6 @@ if __name__ == "__main__":
         [gin_config_path], variant_specific_bindings)
 
     measurement_path = "./testdata/measurement_25_07__15_03"
-    # measurement_path = r"C:\Users\Dominik\Documents\Dokumente\Studium\Masterstudium\Semester_4\Forschungsarbeit\Messungen\dataset\measurement_25_07__12_58.zip"
+    # measurement_path = r""
 
     data_preparation_main(measurement_path)
