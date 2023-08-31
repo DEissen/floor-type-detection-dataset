@@ -53,13 +53,6 @@ class FloorTypeDetectionDataset(Dataset):
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
             root_dir, "labels.csv"), sep=";", header=0).to_numpy()
-        
-        self.device = (
-            "cuda"
-            if torch.cuda.is_available()
-            else
-             "cpu"
-        )
 
     def __get_composed_transforms(self):
         """
@@ -123,11 +116,8 @@ class FloorTypeDetectionDataset(Dataset):
 
         # get the label for the index
         label = self.filenames_labels_array[index, 1]
-        
-        label_as_tensor = torch.tensor(
-            self.label_mapping_dict[label], dtype=torch.int64, device=self.device)
 
-        return (data_dict, label_as_tensor)
+        return (data_dict, self.label_mapping_dict[label])
 
     def get_mapping_dict(self):
         """
@@ -410,13 +400,6 @@ class FTDD_ToTensor():
     """
         Class to convert images and numpy arrays to Tensors as final step for preprocessing of FTDD.
     """
-    def __init__(self):
-        self.device = (
-            "cuda"
-            if torch.cuda.is_available()
-            else
-             "cpu"
-        )
 
     def __call__(self, data_dict: dict):
         """
@@ -435,9 +418,7 @@ class FTDD_ToTensor():
                 # numpy image: H x W x C
                 # torch image: C x H x W
                 image = image.transpose((2, 0, 1))
-                image_as_tensor = torch.tensor(
-                    torch.from_numpy(image), dtype=torch.float32, device=self.device)
-                data_dict[sensor_name] = image_as_tensor
+                data_dict[sensor_name] = torch.from_numpy(image)
             else:
                 imu_data = data_dict[sensor_name]
                 # swap feature axis because (D = data, C = channels)
@@ -448,9 +429,8 @@ class FTDD_ToTensor():
                     imu_data = np.expand_dims(imu_data, 1)
                     # swapping is only needed if multiple feature channels are there
                 imu_data = imu_data.transpose((1, 0))
-                data_as_tensor = torch.tensor(
-                    torch.from_numpy(imu_data), dtype=torch.float32, device=self.device)
-                data_dict[sensor_name] = data_as_tensor
+                data_dict[sensor_name] = torch.tensor(
+                    torch.from_numpy(imu_data), dtype=torch.float32)
 
         return data_dict
 
