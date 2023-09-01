@@ -43,34 +43,34 @@ This section explains how to use the code in this repo for creating a dataset us
 This section contains a brief overview about all files in the repository. The code is structured in four modules/subfolder which contain code for different purposes.
 - **configs/** \
 This directory contains all config files for data preparation and dataset creation.
-    - *data_preparation_config.gin:* 
-    - *faulty_data_creation_config.json:* 
-    - *label_mapping_binary.json:* 
-    - *label_mapping_full_dataset.json:* 
-    - *preprocessing_config.json:* 
+    - *data_preparation_config.gin:* Config file for data preparation
+    - *faulty_data_creation_config.json:* Config file for failure case creation
+    - *label_mapping_binary.json:* Mapping of label name to integer value when only two classes are used
+    - *label_mapping_full_dataset.json:* Mapping of label name to integer value when complete dataset is used
+    - *preprocessing_config.json:* Config file for the data preprocessing, e.g. image cropping and resizing
 - **custom_utils/** \
 This module contains some custom utility functions used in the repository.
     - *utils.py:* Utility functions to handle data (copy data and clear temporary directories)
 - **data_preparation/** \
-This module contains 
-    - *image_preparation.py:*
-    - *incomplete_data_cleanup.py:*
-    - *timeseries_preparation.py:*
-    - *timestamp_evaluation.py:*
+This module contains all code related to data preparation.
+    - *image_preparation.py:* Functions to modify timestamps of images and remove obsolete images
+    - *incomplete_data_cleanup.py:* Functions to identify and delete timestamps for which data of at least one sensor is missing
+    - *timeseries_preparation.py:* Functions for window creation and downsampling
+    - *timestamp_evaluation.py:* Functions for timestamp unification
 - **failure_case_creation/** \
-This module contains 
-    - *modify_images.py:*
-    - *modify_timeseries.py:*
+This module contains all code related to data manipulation for failure case creation.
+    - *modify_images.py:* Functions to modify images from dataset
+    - *modify_timeseries.py:* Functions to modify timeseries data from dataset
 - **testdata/** \
 This directory contains some example data, so you can run *data_preparation_main.py* by default to get an idea of how to use it.
 - **visualization/** \
-This module contains 
-    - *visualizeImages.py:*
-    - *visualizePointCloud.py:*
-    - *visualizeTimeseriesData.py:*
-- *data_preparation_main.py*:
+This module contains files with different visualization functions for different kinds of data.
+    - *visualizeImages.py:* Functions to visualize images (optionally also with timeseries/ IMU data)
+    - *visualizePointCloud.py:* Functions to visualize point clouds
+    - *visualizeTimeseriesData.py:* Functions to visualize timeseries/ IMU data
+- *data_preparation_main.py*: Program to perform data preparation for a measurement, including timestamp unification, window creation for timeseries data, deletion of obsolete data, ... 
 - *datasheet.md*: Template for the datasheet which will be copied to a prepared dataset (including TODO's for points which must be updated)
-- *FTDDataset.py*:
+- *FTDDataset.py*: File containing the FTDDataset() class including an example of how to use it at the end of the file
 - *README.md*: The file you are reading right now :)
 # Authors
 - Dominik Eißen (st177975@stud.uni-stuttgart.de)
