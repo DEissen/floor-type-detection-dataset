@@ -2,11 +2,13 @@ import os
 import numpy as np
 import pandas as pd
 import json
-from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 import matplotlib.pyplot as plt
+from PIL import ImageFile, Image
+# allow truncated images for PIL to process
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 # custom imports
@@ -20,7 +22,7 @@ else:
     from FTDDataset.visualization.visualizeTimeseriesData import plot_IMU_data
 
 # Ignore warnings
-import warnings
+import warnings  # nopep8
 warnings.filterwarnings("ignore")
 
 
