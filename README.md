@@ -70,7 +70,35 @@ This module contains files with different visualization functions for different 
     - *visualizeTimeseriesData.py:* Functions to visualize timeseries/ IMU data
 - *data_preparation_main.py*: Program to perform data preparation for a measurement, including timestamp unification, window creation for timeseries data, deletion of obsolete data, ... 
 - *datasheet.md*: Template for the datasheet which will be copied to a prepared dataset (including TODO's for points which must be updated)
+- *example_data.png*: Image showing example data for README.md
 - *FTDDataset.py*: File containing the FTDDataset() class including an example of how to use it at the end of the file
 - *README.md*: The file you are reading right now :)
+# Supported sensors and example data
+In theory two kinds of sensors are supported:
+- Sensors with "Cam" in their directory name will be handled as cameras
+- Every other sensor will be handled as timeseries sensor (including normalization, ...) 
+
+Still, you should always check for incompatibilities when adding new sensors. Here is a full list of the sensors currently expected and supported:
+- accelerometer
+- BellyCamLeft
+- BellyCamRight
+- bodyHeight
+- ChinCamLeft
+- ChinCamRight
+- footForce
+- gyroscope
+- HeadCamLeft
+- HeadCamRight
+- LeftCamLeft
+- LeftCamRight
+- mode
+- RightCamLeft
+- RightCamRight
+- rpy
+- velocity
+- yawSpeed
+
+Here is an example of the camera images and the corresponding accelerometer data which can be also found in **testdata/** directory:
+![Example data](./example_data.png)
 # Authors
 - Dominik Eißen (st177975@stud.uni-stuttgart.de)
