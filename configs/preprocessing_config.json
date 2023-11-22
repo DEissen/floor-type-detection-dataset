@@ -13,7 +13,7 @@
         
         "crop_top": 45,
         "crop_bottom": 795,
-        "crop_left": 45,
+        "crop_left": 15,
         "crop_right": 745,
         "final_height": 64,
         "final_width": 64
@@ -22,8 +22,8 @@
         
         "crop_top": 70,
         "crop_bottom": 680,
-        "crop_left": 145,
-        "crop_right": 705,
+        "crop_left": 140,
+        "crop_right": 710,
         "final_height": 64,
         "final_width": 64
     },
@@ -31,17 +31,17 @@
         
         "crop_top": 65,
         "crop_bottom": 675,
-        "crop_left": 230,
-        "crop_right": 770,
+        "crop_left": 220,
+        "crop_right": 780,
         "final_height": 64,
         "final_width": 64
     },
     "HeadCamLeft": {
         
-        "crop_top": 80,
+        "crop_top": 75,
         "crop_bottom": 790,
         "crop_left": 60,
-        "crop_right": 800,
+        "crop_right": 815,
         "final_height": 64,
         "final_width": 64
     },
@@ -58,8 +58,8 @@
         
         "crop_top": 0,
         "crop_bottom": 800,
-        "crop_left": 100,
-        "crop_right": 780,
+        "crop_left": 80,
+        "crop_right": 800,
         "final_height": 64,
         "final_width": 64
     },
@@ -67,8 +67,8 @@
         
         "crop_top": 0,
         "crop_bottom": 800,
-        "crop_left": 120,
-        "crop_right": 800,
+        "crop_left": 110,
+        "crop_right": 810,
         "final_height": 64,
         "final_width": 64
     },
@@ -77,7 +77,7 @@
         "crop_top": 0,
         "crop_bottom": 800,
         "crop_left": 80,
-        "crop_right": 770,
+        "crop_right": 785,
         "final_height": 64,
         "final_width": 64
     },
@@ -85,8 +85,8 @@
         
         "crop_top": 0,
         "crop_bottom": 800,
-        "crop_left": 80,
-        "crop_right": 770,
+        "crop_left": 70,
+        "crop_right": 780,
         "final_height": 64,
         "final_width": 64
     }

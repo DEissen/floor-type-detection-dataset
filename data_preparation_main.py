@@ -83,6 +83,8 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     update_labels_csv(temp_path, incomplete_samples_list)
     print("Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
 
+    ### Add data preprocessing here
+
     print("\n\n### Step 8: Copy prepared dataset ###")
     if dataset_path == None:
         # clean results/ dir if it shall be used
