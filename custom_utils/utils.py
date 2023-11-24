@@ -1,8 +1,7 @@
 import os
 from distutils.dir_util import copy_tree
 import shutil
-import glob
-import numpy as np
+import json
 import zipfile
 
 
@@ -83,3 +82,21 @@ def copy_prepared_dataset(dataset_path=None):
     copy_tree(temp_path, dataset_path)
 
     print(f"Files were successfully copied to {dataset_path}")
+
+def load_json_from_configs(json_filename):
+    """
+        Helper function to load any JSON file from the configs/ dir of the repo.
+
+        Parameters:
+            - json_filename (str): Name of the JSON file in the configs/ dir
+
+        Returns:
+            - json_as_dict (dict): Dict containing the data from the file json_filename
+    """
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(file_dir, os.pardir, "configs", json_filename)
+
+    with open(json_path, "r") as f:
+        json_as_dict = json.load(f)
+
+    return json_as_dict

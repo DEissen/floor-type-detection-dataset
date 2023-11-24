@@ -120,6 +120,30 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data, im
             # stop in case of IndexError, which can happen if BellyCam has more images then the other cameras
             break
 
+def show_image_comparison(old_image, new_image, title):
+    """
+        Function to show two images next to each other (e.g. to visualize image preprocessing).
+
+        Parameter:
+            - old_image (PIL.Image): First image to show
+            - new_image (PIL.Image): Second image to show (on the right side)
+            - title (str): String with the title for the plot
+    """
+    columns = 2
+    rows = 1
+    fig = plt.figure(figsize=(20, 13))
+    ax = []
+
+    plt.title(title)
+    
+    ax.append(fig.add_subplot(rows, columns, 1))
+    ax[-1].set_title("old image")
+    plt.imshow(old_image)
+
+    ax.append(fig.add_subplot(rows, columns, 2))
+    ax[-1].set_title("preprocessed image")
+    plt.imshow(new_image)
+    plt.show()
 
 if __name__ == "__main__":
     # file_dir = os.path.dirname(os.path.abspath(__file__))

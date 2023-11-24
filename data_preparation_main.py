@@ -3,13 +3,14 @@ import gin
 import shutil
 
 # custom imports
-from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir
+from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir, load_json_from_configs
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps, remove_obsolete_data_at_end, create_label_csv, get_earliest_timestamp_from_IMU, get_data_from_info_json_for_timestamp_evaluation
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
 from data_preparation.incomplete_data_cleanup import get_incomplete_data_samples, delete_incomplete_data_samples, update_labels_csv
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
+from data_preprocessing_main import data_preprocessing_main
 
 
 @gin.configurable
@@ -83,15 +84,18 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     update_labels_csv(temp_path, incomplete_samples_list)
     print("Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
 
-    ### Add data preprocessing here
+    print("\n\n### Step 8: Perform preprocessing for all data samples ###")
+    config_path = "preprocessing_config.json"
+    config_dict = load_json_from_configs(config_path)
+    data_preprocessing_main(temp_path, config_dict)
 
-    print("\n\n### Step 8: Copy prepared dataset ###")
+    print("\n\n### Step 9: Copy prepared dataset ###")
     if dataset_path == None:
         # clean results/ dir if it shall be used
         clean_results_dir()
     copy_prepared_dataset(dataset_path)
 
-    print("\n\n### Step 9: Copy datasheed.md to results dir ###")
+    print("\n\n### Step 10: Copy datasheed.md to results dir ###")
     shutil.copy("./datasheet.md", "./results/")
     print("datasheet.md was copied to ./results/")
 
@@ -123,7 +127,9 @@ if __name__ == "__main__":
     gin.parse_config_files_and_bindings(
         [gin_config_path], variant_specific_bindings)
 
-    measurement_path = "./testdata/measurement_25_07__15_03"
-    # measurement_path = r""
+    # measurement_path = "./testdata/measurement_25_07__15_03"
+    # FTDD_1 measruements: measurement_29_08__09_01, measurement_29_08__09_20, measurement_29_08__09_26, measurement_29_08__09_32, measurement_29_08__09_38,
+    #                      measurement_29_08__09_42, measurement_29_08__10_11, measurement_29_08__10_15
+    measurement_path = r"C:\Users\Dominik\Downloads\FTDD_1.0_raw\measurement_29_08__10_15.zip"
 
     data_preparation_main(measurement_path)

@@ -16,10 +16,13 @@ if __name__ == "__main__":
     from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
     from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
     from visualization.visualizeTimeseriesData import plot_IMU_data
+    from custom_utils.utils import load_json_from_configs
 else:
+    # else statement needed when FloorTypeDetectionDataset() class is used as submodule in other project
     from FTDDataset.failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
     from FTDDataset.failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
     from FTDDataset.visualization.visualizeTimeseriesData import plot_IMU_data
+    from FTDDataset.custom_utils.utils import load_json_from_configs
 
 # Ignore warnings
 import warnings  # nopep8
@@ -73,10 +76,11 @@ class FloorTypeDetectionDataset(Dataset):
                 self.faulty_data_creation_config_filename))
 
         # ## Image preprocessing
-        transformations_list.append(
-            FTDD_Crop(self.preprocessing_config_filename))
-        transformations_list.append(FTDD_Rescale(
-            self.preprocessing_config_filename))
+        # ## Crop and Rescale is obsolete here as it is already done in the dataset!
+        # transformations_list.append(
+        #     FTDD_Crop(self.preprocessing_config_filename))
+        # transformations_list.append(FTDD_Rescale(
+        #     self.preprocessing_config_filename))
         transformations_list.append(FTDD_Normalize(
             self.preprocessing_config_filename))
 
@@ -147,26 +151,6 @@ class FloorTypeDetectionDataset(Dataset):
                 - (int) Number of unique data samples in the dataset 
         """
         return np.shape(self.filenames_labels_array)[0]
-
-
-def load_json_from_configs(json_filename):
-    """
-        Helper function to load any JSON file from the configs/ dir of the repo.
-
-        Parameters:
-            - json_filename (str): Name of the JSON file in the configs/ dir
-
-        Returns:
-            - json_as_dict (dict): Dict containing the data from the file json_filename
-    """
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(file_dir, "configs", json_filename)
-
-    with open(json_path, "r") as f:
-        json_as_dict = json.load(f)
-
-    return json_as_dict
-
 
 class FTDD_Transform_Superclass():
     """
@@ -465,7 +449,7 @@ if __name__ == "__main__":
         This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
     """
     # variables for dataset and config to use
-    dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
+    dataset_path = r"C:\Users\Dominik\Downloads\FTDD1.1_preprocessed"
     mapping_filename = "label_mapping_binary.json"
     preprocessing_config_filename = "preprocessing_config.json"
     faulty_data_creation_config_filename = "faulty_data_creation_config.json"
