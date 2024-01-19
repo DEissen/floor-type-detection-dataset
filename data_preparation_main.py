@@ -169,7 +169,7 @@ if __name__ == "__main__":
     file_dir = os.path.dirname(os.path.abspath(__file__))
     result_dir = os.path.join(file_dir, "results")
 
-    # # clean result and temp dir at the start
+    # clean result and temp dir at the start
     print("### Step 0: Clean temp and results dirs ###")
     clean_results_dir()
     clean_temp_dir()

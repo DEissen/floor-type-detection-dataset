@@ -59,7 +59,9 @@ def show_camera_images_in_parallel(cam1_image_path, cam2_image_path, cam3_image_
         plt.vlines(imu_position, ymin=np.min(imu_data),
                    ymax=np.max(imu_data), color="red")
 
-    plt.show()
+    plt.show(block=False)
+    plt.pause(1)
+    plt.close("all")
 
 
 def show_all_images_afterwards(measurement_path):
