@@ -14,7 +14,7 @@ from data_preprocessing_main import data_preprocessing_main
 
 
 @gin.configurable
-def data_preparation_main(measurement_path, dataset_path=None, window_size=50, normalize_IMU_data=True):
+def data_preparation_main(measurement_path, dataset_path=None, window_size=50, normalize_IMU_data_measurement_based=True, preprocess_IMU_data_dataset_based=False, preprocess_images=False, resize_images=False):
     """
         Function to start the complete data preparation process for a new measurement.
 
@@ -23,9 +23,15 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
             - dataset_path (str): Path to dir where the prepared data shall be copied to.
                                   Default = None -> the dataset will be copied to results/ dir in the repository.
             - window_size (int): Size of the windows to create for IMU data (default = 50)
-            - normalize_IMU_data (bool): Select whether to apply Z Score normalization to IMU data (default = True)
-
+            - normalize_IMU_data_measurement_based (bool): Select whether to apply Z Score normalization to IMU data for each measurement (default = True)
+            - preprocess_IMU_data_dataset_based (bool): Select whether IMU data shall be preprocessed (default = False)
+            - preprocess_images (bool): Select whether images shall be preprocessed (default = False)
+            - resize_images (bool): Boolean to enable resizing of images
     """
+    if normalize_IMU_data_measurement_based and preprocess_IMU_data_dataset_based:
+        print("Dataset creation aborted, due to invalid config (IMU data was selected to be preprocessed/ normalized twice!)")
+        return
+
     print("### Step 1: Copy measurements ###")
     # # clear the temp dir and copy the desired measurement to it afterwards
     clean_temp_dir()
@@ -48,10 +54,10 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
         temp_path)
     earliest_timestamp = get_earliest_timestamp_from_IMU(
         temp_path, measurement_timestamp)
-    # create sliding windows 
+    # create sliding windows
     for sensor in timeseries_downsampler.timeseries_sensors:
         create_sliding_windows_and_save_them(
-            temp_path, earliest_timestamp, sensor, window_size, normalize_IMU_data)
+            temp_path, earliest_timestamp, sensor, window_size, normalize_IMU_data_measurement_based)
 
     print("\n\n### Step 3: Get synchronized timestamps and delete data previous to synchronized timestamp ###")
     timestamps = get_synchronized_timestamps(temp_path)
@@ -75,7 +81,8 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     create_label_csv(temp_path)
 
     print("\n\n### Step 7: Remove incomplete data samples ###")
-    incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(temp_path)
+    incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(
+        temp_path)
     print(f"The files for the following timestamps will be deleted now:")
     # log info about missing files
     for incomplete_samples in complete_incomplete_samples_list:
@@ -87,7 +94,8 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     print("\n\n### Step 8: Perform preprocessing for all data samples ###")
     config_path = "preprocessing_config.json"
     config_dict = load_json_from_configs(config_path)
-    data_preprocessing_main(temp_path, config_dict)
+    data_preprocessing_main(
+        temp_path, config_dict, preprocess_images, preprocess_IMU_data_dataset_based, resize_images)
 
     print("\n\n### Step 9: Copy prepared dataset ###")
     if dataset_path == None:
@@ -103,7 +111,7 @@ def data_preparation_main(measurement_path, dataset_path=None, window_size=50, n
     # visualize_result(window_size)
 
 
-def visualize_result(imu_offset = 0):
+def visualize_result(imu_offset=0):
     """
         Helper function to load and visualize data from one IMU sensor and one picture of each stereo camera present in temp/ dir.
         Can be used the show e.g. intermediate results.
@@ -120,7 +128,6 @@ def visualize_result(imu_offset = 0):
 
 
 if __name__ == "__main__":
-
     # get and use gin config
     gin_config_path = "./configs/data_preparation_config.gin"
     variant_specific_bindings = []
@@ -130,6 +137,6 @@ if __name__ == "__main__":
     # measurement_path = "./testdata/measurement_25_07__15_03"
     # FTDD_1 measruements: measurement_29_08__09_01, measurement_29_08__09_20, measurement_29_08__09_26, measurement_29_08__09_32, measurement_29_08__09_38,
     #                      measurement_29_08__09_42, measurement_29_08__10_11, measurement_29_08__10_15
-    measurement_path = r"C:\Users\Dominik\Downloads\FTDD_1.0_raw\measurement_29_08__10_15.zip"
+    measurement_path = r"D:\MA_Daten\FTDD2.0_raw\training_data\measurement_17_01__10_43"
 
     data_preparation_main(measurement_path)
