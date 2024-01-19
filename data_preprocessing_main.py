@@ -1,6 +1,7 @@
 import os
 import glob
 from PIL import ImageFile, Image
+import logging
 # allow truncated images for PIL to process
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -71,11 +72,11 @@ def preprocess_images_for_camera(dataset_path, camera_name, config_dict, resize_
         os.remove(file)
         image.save(file)
 
-    print(f"Finished preprocessing for {camera_name}!")
+    logging.info(f"Finished preprocessing for {camera_name}!")
 
 
 def preprocess_timeseries_data(dataset_path, sensor, config_dict):
-    print(f"This would be the timeseries data preprocessing for {sensor}")
+    logging.info(f"This would be the timeseries data preprocessing for {sensor}")
 
 
 if __name__ == "__main__":

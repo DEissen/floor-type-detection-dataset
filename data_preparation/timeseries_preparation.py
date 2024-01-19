@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 from datetime import datetime, timedelta
+import logging
 
 # differentiation needed to support execution of file directly and to allow function to be included by data_preparation_main.py
 if __name__ == "__main__":
@@ -57,14 +58,14 @@ class TimeseriesDownsamplingForWholeMeasurement():
             raise Exception(
                 f"No timeseries sensor found for measurement '{self.measurement_path}'")
         else:
-            print(
+            logging.info(
                 f"downsampling will be done for the following sensors: {self.timeseries_sensors}")
 
         # execute downsampling for all files
         for root, dirs, files in os.walk(os.path.join(self.measurement_path, self.timeseries_sensors[0])):
             files.sort()
             for file in files:
-                print(f"\nStart downsampling for file '{file}'")
+                logging.info(f"\nStart downsampling for file '{file}'")
                 self.__start_downsampling_for_all_sensors_by_filename(file)
 
     def __start_downsampling_for_all_sensors_by_filename(self, filename):
@@ -110,7 +111,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
                     self.measurement_path, sensor, filename), delimiter=';')
                 self.data_dict[sensor] = self.downsampling_array
                 sensor_for_downsampling_found = True
-                print(
+                logging.info(
                     f"Using '{sensor}' for downsampling of file '{filename}'")
             else:
                 self.data_dict[sensor] = np.genfromtxt(os.path.join(
@@ -159,8 +160,8 @@ class TimeseriesDownsamplingForWholeMeasurement():
                     max_occurrences = num_subsequent_occurrences
 
         # print info about max occurrences for plausibility check of downsampling
-        print(f"Max occurrence of single value was '{max_occurrences}'")
-        print(
+        logging.info(f"Max occurrence of single value was '{max_occurrences}'")
+        logging.info(
             f"Amount of odd occurrences is {self.odd_counter} which corresponds to {(self.odd_counter*100)/(self.odd_counter+self.even_counter):.2f} %")
 
     def __count_subsequent_occurrences(self, array_length, current_index, value_to_check):
@@ -279,7 +280,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
             f"The needed shift of {shift} is not within the earliest measurement. Thus execution will be aborted.")
     elif shift > 0:
         # drop obsolete data when mandatory
-        print(
+        logging.info(
             f"Obsolete data for sensor '{sensor_name}' will be removed (first {shift} data points will be removed).")
         data = data[shift:]
 
@@ -290,7 +291,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
         # delete old file
         os.remove(os.path.join(measurement_path, sensor_name, first_filename))
     else:
-        print(f"No update needed for sensor '{sensor_name}'")
+        logging.info(f"No update needed for sensor '{sensor_name}'")
 
 
 def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, sensor_name, window_size, normalization=False):
@@ -335,7 +336,7 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
                                axis=0)) / np.std(raw_data, axis=0)
         else:
             normalized_data = raw_data
-            print(
+            logging.info(
                 f"No normalization was done for {sensor_name} as this would result in NaN values!")
     else:
         normalized_data = raw_data
