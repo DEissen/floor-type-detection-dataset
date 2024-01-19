@@ -22,8 +22,8 @@
         
         "crop_top": 70,
         "crop_bottom": 680,
-        "crop_left": 140,
-        "crop_right": 710,
+        "crop_left": 220,
+        "crop_right": 780,
         "final_height": 64,
         "final_width": 64
     },
@@ -31,8 +31,8 @@
         
         "crop_top": 65,
         "crop_bottom": 675,
-        "crop_left": 220,
-        "crop_right": 780,
+        "crop_left": 140,
+        "crop_right": 710,
         "final_height": 64,
         "final_width": 64
     },
