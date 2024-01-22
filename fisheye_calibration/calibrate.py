@@ -4,6 +4,8 @@ import numpy as np
 import os
 import glob
 
+# TODO Add docstring and refactor code in case this should be implemented => currently only test code!
+
 CHECKERBOARD = (6,9)
 
 subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)

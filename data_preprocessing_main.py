@@ -94,4 +94,4 @@ if __name__ == "__main__":
 
     measurement_path = "./results"
 
-    data_preprocessing_main(measurement_path, config_dict)
+    data_preprocessing_main(measurement_path, config_dict, preprocess_images=True, preprocess_IMU_data=False, resize_images=True)
