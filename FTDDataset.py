@@ -76,6 +76,7 @@ class FloorTypeDetectionDataset(Dataset):
                 self.faulty_data_creation_config_filename))
 
         # ## Image preprocessing
+        # TODO: make crop and rescale configurable or detect automatically whether it is needed!
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
         # transformations_list.append(
         #     FTDD_Crop(self.preprocessing_config_filename))

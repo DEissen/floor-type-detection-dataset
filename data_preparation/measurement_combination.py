@@ -5,6 +5,13 @@ import numpy as np
 
 
 def combine_measurements_to_dataset(prepared_measurements_base_path, dataset_path):
+    """
+        Function combine multiple prepared datasets to a single dataset.
+
+        Parameters:
+            - prepared_measurements_base_path (str): Path to dir where the prepared measurements are currently stored
+            - dataset_path (str): Path to dir where the measurements shall be copied to
+    """
     print(
         f"Start creating dataset from measurements at path: {prepared_measurements_base_path}")
     label_mapping_list = []
@@ -40,6 +47,7 @@ def combine_measurements_to_dataset(prepared_measurements_base_path, dataset_pat
     os.remove(os.path.join(dataset_path, "data_preparation.log"))
     os.remove(os.path.join(dataset_path, "info.json"))
 
+    # print infos about measurements added to dataset
     print(
         f"\nDataset was successfully created and can be found here: {dataset_path}")
     print("\nPlease update the datasheet.md file manually with the following details:")
@@ -50,11 +58,27 @@ def combine_measurements_to_dataset(prepared_measurements_base_path, dataset_pat
 
 
 def copy_measurement_to_dataset(measurement_path, dataset_path):
+    """
+        Function to copy the data from the measurement at measurement_path to the dataset at dataset_path.
+
+        Parameters:
+            - measurement_path (str): Path to dir where the measurement is currently stored
+            - dataset_path (str): Path to dir where the measurement shall be copied to
+    """
     print(f"Copy files from {measurement_path} to {dataset_path}")
     copy_tree(measurement_path, dataset_path)
 
 
 def get_labels_timestamp_mapping(measurement_path):
+    """
+        Function to load and return the label-timestamp mapping from a labels.csv file located at measurement_path.
+
+        Parameters:
+            - measurement_path (str): Path to the dataset/ measurement where the labels.csv file is located
+
+        Return:
+            - (numpy.array): Numpy array with label-timestamp mapping from labels.csv file
+    """
     return pd.read_csv(os.path.join(
         measurement_path, "labels.csv"), sep=";", header=0).to_numpy()
 

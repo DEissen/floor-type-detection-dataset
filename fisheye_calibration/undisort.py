@@ -5,6 +5,9 @@ import os
 import sys
 import glob
 
+
+# TODO Add docstring and refactor code in case this should be implemented => currently only test code!
+
 # You should replace these 3 lines with the output in calibration step
 # HeadCamLeft whole image
 # DIM=(928, 800)

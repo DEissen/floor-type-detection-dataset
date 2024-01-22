@@ -138,6 +138,8 @@ def visualize_result(imu_offset=0, temp_path=None):
 
         Parameters:        
             - imu_offset (int): Offset for vertical line in IMU plot (needed if sliding windows were already created)
+            - temp_path (str): Path to temp folder from where data shall be visualized. (Default = None)
+                               If temp_path != None then raw data must be available at temp_path, otherwise data from measurement_path will be copied to location "./temp"
     """
     if temp_path == None:
         file_dir = os.path.dirname(os.path.abspath(__file__))

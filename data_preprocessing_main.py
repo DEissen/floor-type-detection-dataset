@@ -76,6 +76,14 @@ def preprocess_images_for_camera(dataset_path, camera_name, config_dict, resize_
 
 
 def preprocess_timeseries_data(dataset_path, sensor, config_dict):
+    """
+        Function to preprocess data from IMU sensors for a dataset (or measurement).
+
+        Parameters:
+            - dataset_path (str): Path to dir where the measurement is stored (can also be a .zip file)
+            - sensor (str): Name of the IMU data to perform preprocessing for 
+            - config_dict (dict): Dict containing the configuration for all sensors of the dataset
+    """
     logging.info(f"This would be the timeseries data preprocessing for {sensor}")
 
 
