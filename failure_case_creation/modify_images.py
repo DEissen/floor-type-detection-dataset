@@ -189,21 +189,21 @@ def motion_blur(x, severity=1):
     else:  # greyscale to RGB
         return np.clip(np.array([x, x, x]).transpose((1, 2, 0)), 0, 255)
 
-# def zoom_blur(x, severity=1):
-#     # NOTE: seems only to work with sqaured images!
-#     c = [np.arange(1, 1.11, 0.01),
-#          np.arange(1, 1.16, 0.01),
-#          np.arange(1, 1.21, 0.02),
-#          np.arange(1, 1.26, 0.02),
-#          np.arange(1, 1.31, 0.03)][severity - 1]
+def zoom_blur(x, severity=1):
+    # NOTE: seems only to work with sqaured images!
+    c = [np.arange(1, 1.11, 0.01),
+         np.arange(1, 1.16, 0.01),
+         np.arange(1, 1.21, 0.02),
+         np.arange(1, 1.26, 0.02),
+         np.arange(1, 1.31, 0.03)][severity - 1]
 
-#     x = (np.array(x) / 255.).astype(np.float32)
-#     out = np.zeros_like(x)
-#     for zoom_factor in c:
-#         out += clipped_zoom(x, zoom_factor)
+    x = (np.array(x) / 255.).astype(np.float32)
+    out = np.zeros_like(x)
+    for zoom_factor in c:
+        out += clipped_zoom(x, zoom_factor)
 
-#     x = (x + out) / (len(c) + 1)
-#     return np.clip(x, 0, 1) * 255
+    x = (x + out) / (len(c) + 1)
+    return np.clip(x, 0, 1) * 255
 
 def gaussian_blur(x, severity=1):
     c = [1, 2, 3, 4, 6][severity - 1]
@@ -212,47 +212,47 @@ def gaussian_blur(x, severity=1):
     return np.clip(x, 0, 1) * 255
 
 #----------- wheater function
-# def snow(x, severity=1):
-#     # NOTE: seems only to work with sqaured images!
-#     c = [(0.1, 0.3, 3, 0.5, 10, 4, 0.8),
-#          (0.2, 0.3, 2, 0.5, 12, 4, 0.7),
-#          (0.55, 0.3, 4, 0.9, 12, 8, 0.7),
-#          (0.55, 0.3, 4.5, 0.85, 12, 8, 0.65),
-#          (0.55, 0.3, 2.5, 0.85, 12, 12, 0.55)][severity - 1]
+def snow(x, severity=1):
+    # NOTE: seems only to work with sqaured images!
+    c = [(0.1, 0.3, 3, 0.5, 10, 4, 0.8),
+         (0.2, 0.3, 2, 0.5, 12, 4, 0.7),
+         (0.55, 0.3, 4, 0.9, 12, 8, 0.7),
+         (0.55, 0.3, 4.5, 0.85, 12, 8, 0.65),
+         (0.55, 0.3, 2.5, 0.85, 12, 12, 0.55)][severity - 1]
 
-#     x = np.array(x, dtype=np.float32) / 255.
-#     snow_layer = np.random.normal(size=x.shape[:2], loc=c[0], scale=c[1])  # [:2] for monochrome
+    x = np.array(x, dtype=np.float32) / 255.
+    snow_layer = np.random.normal(size=x.shape[:2], loc=c[0], scale=c[1])  # [:2] for monochrome
 
-#     snow_layer = clipped_zoom(snow_layer[..., np.newaxis], c[2])
-#     snow_layer[snow_layer < c[3]] = 0
+    snow_layer = clipped_zoom(snow_layer[..., np.newaxis], c[2])
+    snow_layer[snow_layer < c[3]] = 0
 
-#     snow_layer = Image.fromarray((np.clip(snow_layer.squeeze(), 0, 1) * 255).astype(np.uint8), mode='L')
-#     output = BytesIO()
-#     snow_layer.save(output, format='PNG')
-#     snow_layer = MotionImage(blob=output.getvalue())
+    snow_layer = Image.fromarray((np.clip(snow_layer.squeeze(), 0, 1) * 255).astype(np.uint8), mode='L')
+    output = BytesIO()
+    snow_layer.save(output, format='PNG')
+    snow_layer = MotionImage(blob=output.getvalue())
 
-#     snow_layer.motion_blur(radius=c[4], sigma=c[5], angle=np.random.uniform(-135, -45))
+    snow_layer.motion_blur(radius=c[4], sigma=c[5], angle=np.random.uniform(-135, -45))
 
-#     snow_layer = cv2.imdecode(np.fromstring(snow_layer.make_blob(), np.uint8),
-#                               cv2.IMREAD_UNCHANGED) / 255.
-#     snow_layer = snow_layer[..., np.newaxis]
+    snow_layer = cv2.imdecode(np.fromstring(snow_layer.make_blob(), np.uint8),
+                              cv2.IMREAD_UNCHANGED) / 255.
+    snow_layer = snow_layer[..., np.newaxis]
 
-#     x = c[6] * x + (1 - c[6]) * np.maximum(x, cv2.cvtColor(x, cv2.COLOR_RGB2GRAY).reshape(x.shape[0], x.shape[1], 1) * 1.5 + 0.5)
-#     return np.clip(x + snow_layer + np.rot90(snow_layer, k=2), 0, 1) * 255
+    x = c[6] * x + (1 - c[6]) * np.maximum(x, cv2.cvtColor(x, cv2.COLOR_RGB2GRAY).reshape(x.shape[0], x.shape[1], 1) * 1.5 + 0.5)
+    return np.clip(x + snow_layer + np.rot90(snow_layer, k=2), 0, 1) * 255
 
-# def frost(x, severity=1):
-#     # NOTE: Does only work with smaller images (as frost images are also smaller)
-#     c = [(1, 0.4),
-#          (0.8, 0.6),
-#          (0.7, 0.7),
-#          (0.65, 0.7),
-#          (0.6, 0.75)][severity - 1]
-#     idx = np.random.randint(5)
-#     filename = ['./frost1.png', './frost2.png', './frost3.png', './frost4.jpg', './frost5.jpg', './frost6.jpg'][idx]
-#     frost = cv2.imread(filename)
-#     # randomly crop and convert to rgb
-#     x_start, y_start = np.random.randint(0, frost.shape[0] - 224), np.random.randint(0, frost.shape[1] - 224)
-#     frost = frost[x_start:x_start + 224, y_start:y_start + 224][..., [2, 1, 0]]
+def frost(x, severity=1):
+    # NOTE: Does only work with smaller images (as frost images are also smaller)
+    c = [(1, 0.4),
+         (0.8, 0.6),
+         (0.7, 0.7),
+         (0.65, 0.7),
+         (0.6, 0.75)][severity - 1]
+    idx = np.random.randint(5)
+    filename = ['./frost1.png', './frost2.png', './frost3.png', './frost4.jpg', './frost5.jpg', './frost6.jpg'][idx]
+    frost = cv2.imread(filename)
+    # randomly crop and convert to rgb
+    x_start, y_start = np.random.randint(0, frost.shape[0] - 224), np.random.randint(0, frost.shape[1] - 224)
+    frost = frost[x_start:x_start + 224, y_start:y_start + 224][..., [2, 1, 0]]
 
     return np.clip(c[0] * np.array(x) + c[1] * frost, 0, 255)
 
@@ -348,37 +348,38 @@ def saturate(x, severity=1):
 
     return np.clip(x, 0, 1) * 255
 
-# mod of https://gist.github.com/erniejunior/601cdf56d2b424757de5
-def elastic_transform(image, severity=1):
-    c = [(244 * 2, 244 * 0.7, 244 * 0.1),   # 244 should have been 224, but ultimately nothing is incorrect
-         (244 * 2, 244 * 0.08, 244 * 0.2),
-         (244 * 0.05, 244 * 0.01, 244 * 0.02),
-         (244 * 0.07, 244 * 0.01, 244 * 0.02),
-         (244 * 0.12, 244 * 0.01, 244 * 0.02)][severity - 1]
+# elastic doesn't work well due to black border around the images
+# # mod of https://gist.github.com/erniejunior/601cdf56d2b424757de5
+# def elastic_transform(image, severity=1):
+#     c = [(244 * 2, 244 * 0.7, 244 * 0.1),   # 244 should have been 224, but ultimately nothing is incorrect
+#          (244 * 2, 244 * 0.08, 244 * 0.2),
+#          (244 * 0.05, 244 * 0.01, 244 * 0.02),
+#          (244 * 0.07, 244 * 0.01, 244 * 0.02),
+#          (244 * 0.12, 244 * 0.01, 244 * 0.02)][severity - 1]
 
-    image = np.array(image, dtype=np.float32) / 255.
-    shape = image.shape
-    shape_size = shape[:2]
+#     image = np.array(image, dtype=np.float32) / 255.
+#     shape = image.shape
+#     shape_size = shape[:2]
 
-    # random affine
-    center_square = np.float32(shape_size) // 2
-    square_size = min(shape_size) // 3
-    pts1 = np.float32([center_square + square_size,
-                       [center_square[0] + square_size, center_square[1] - square_size],
-                       center_square - square_size])
-    pts2 = pts1 + np.random.uniform(-c[2], c[2], size=pts1.shape).astype(np.float32)
-    M = cv2.getAffineTransform(pts1, pts2)
-    image = cv2.warpAffine(image, M, shape_size[::-1], borderMode=cv2.BORDER_REFLECT_101)
+#     # random affine
+#     center_square = np.float32(shape_size) // 2
+#     square_size = min(shape_size) // 3
+#     pts1 = np.float32([center_square + square_size,
+#                        [center_square[0] + square_size, center_square[1] - square_size],
+#                        center_square - square_size])
+#     pts2 = pts1 + np.random.uniform(-c[2], c[2], size=pts1.shape).astype(np.float32)
+#     M = cv2.getAffineTransform(pts1, pts2)
+#     image = cv2.warpAffine(image, M, shape_size[::-1], borderMode=cv2.BORDER_REFLECT_101)
 
-    dx = (gaussian(np.random.uniform(-1, 1, size=shape[:2]),
-                   c[1], mode='reflect', truncate=3) * c[0]).astype(np.float32)
-    dy = (gaussian(np.random.uniform(-1, 1, size=shape[:2]),
-                   c[1], mode='reflect', truncate=3) * c[0]).astype(np.float32)
-    dx, dy = dx[..., np.newaxis], dy[..., np.newaxis]
+#     dx = (gaussian(np.random.uniform(-1, 1, size=shape[:2]),
+#                    c[1], mode='reflect', truncate=3) * c[0]).astype(np.float32)
+#     dy = (gaussian(np.random.uniform(-1, 1, size=shape[:2]),
+#                    c[1], mode='reflect', truncate=3) * c[0]).astype(np.float32)
+#     dx, dy = dx[..., np.newaxis], dy[..., np.newaxis]
 
-    x, y, z = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]), np.arange(shape[2]))
-    indices = np.reshape(y + dy, (-1, 1)), np.reshape(x + dx, (-1, 1)), np.reshape(z, (-1, 1))
-    return np.clip(map_coordinates(image, indices, order=1, mode='reflect').reshape(shape), 0, 1) * 255
+#     x, y, z = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]), np.arange(shape[2]))
+#     indices = np.reshape(y + dy, (-1, 1)), np.reshape(x + dx, (-1, 1)), np.reshape(z, (-1, 1))
+#     return np.clip(map_coordinates(image, indices, order=1, mode='reflect').reshape(shape), 0, 1) * 255
 
 def jpeg_compression(x, severity=1):
     c = [25, 18, 15, 10, 7][severity - 1]
@@ -402,12 +403,20 @@ def pixelate(x, severity=1):
 
 
 if __name__ == "__main__":
-    path = r"testdata\measurement_25_07__15_03\BellyCamLeft\Left_15_03_21_583.jpg"
+    path = r"D:\MA_Daten\FTDD2.0_preprocessed\FTDD_2.0_train\HeadCamLeft\10_49_15_029.jpg"
     img = Image.open(path)
 
     # img.show()
 
-    mod = pixelate(img, 5)
+    # Noises:
+    #   gaussian_noise, shot_noise, impulse_noise, (speckle_noise)
+    # Blur:
+    #   defocus_blur, glass_blur, motion_blur, zoom_blur, (gaussian_blur)
+    # Wheather:
+    #   snow, frost, fog, (spatter)
+    # Digital:
+    #   brightness, contrast, (saturate), elastic_transform, jpeg_compression, pixelate
+    mod = gaussian_noise(img, 5)
 
     plt.imshow(mod/255)
 
