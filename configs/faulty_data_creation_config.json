@@ -17,7 +17,67 @@
             ""
         ],
         "sharpness_min": 7,
-        "sharpness_max": 15
+        "sharpness_max": 15,
+
+        "noise intensity": 1,
+        "blur intensity": 1,
+        "weather intensity": 1,
+        "digital intensity": 1,
+
+        "Cams for guassian_noise": [
+            ""
+        ],
+        "Cams for shot_noise": [
+            ""
+        ],
+        "Cams for impulse_noise": [
+            ""
+        ],
+        "Cams for speckle_noise": [
+            ""
+        ],
+        "Cams for defocus_blur": [
+            ""
+        ],
+        "Cams for glass_blur": [
+            ""
+        ],
+        "Cams for motion_blur": [
+            ""
+        ],
+        "Cams for zoom_blur": [
+            ""
+        ],
+        "Cams for gaussian_blur": [
+            ""
+        ],
+        "Cams for snow": [
+            ""
+        ],
+        "Cams for frost": [
+            ""
+        ],
+        "Cams for fog": [
+            ""
+        ],
+        "Cams for spatter": [
+            ""
+        ],
+        "Cams for new brightness": [
+            ""
+        ],
+        "Cams for new contrast": [
+            ""
+        ],
+        "Cams for saturate": [
+            ""
+        ],
+        "Cams for jpeg_compression": [
+            ""
+        ],
+        "Cams for pixelate": [
+            ""
+        ]
     },
     "timeseries": {
         "Sensors for offset": [
