@@ -80,8 +80,8 @@ class FloorTypeDetectionDataset(Dataset):
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
         # transformations_list.append(
         #     FTDD_Crop(self.preprocessing_config_filename))
-        # transformations_list.append(FTDD_Rescale(
-        #     self.preprocessing_config_filename))
+        transformations_list.append(FTDD_Rescale(
+            self.preprocessing_config_filename))
         transformations_list.append(FTDD_Normalize(
             self.preprocessing_config_filename))
 
