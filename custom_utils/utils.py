@@ -103,9 +103,8 @@ def load_json_from_configs(run_path, json_filename):
     if run_path == "":
         file_dir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(file_dir, os.pardir, "configs", json_filename)
-    else:        
-        file_dir = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(run_path, "configs", json_filename)
+    else:
+        json_path = os.path.join(run_path, "config", json_filename)
 
     with open(json_path, "r") as f:
         json_as_dict = json.load(f)
