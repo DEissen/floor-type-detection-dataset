@@ -50,6 +50,7 @@ class FloorTypeDetectionDataset(Dataset):
         self.sensors = sensors
         self.preprocessing_config_filename = preprocessing_config_filename
         self.faulty_data_creation_config_filename = faulty_data_creation_config_filename
+        self.faulty_data_creation_config_dict = {}
         self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
@@ -75,6 +76,10 @@ class FloorTypeDetectionDataset(Dataset):
             transformations_list.append(FTDD_CreateFaultyData(
                 self.faulty_data_creation_config_filename))
 
+            # save faulty data creation config dict for logging if it was provided
+            self.faulty_data_creation_config_dict = transformations_list[0].get_config_dict(
+            )
+
         # ## Image preprocessing
         # TODO: make crop and rescale configurable or detect automatically whether it is needed!
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
@@ -88,8 +93,8 @@ class FloorTypeDetectionDataset(Dataset):
         # ## Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
 
-        # save preprocessing config dict for logging from first transform
-        self.preprocessing_config_dict = transformations_list[0].get_config_dict(
+        # save preprocessing config dict for logging from first transform (transform at position 1 will be either rescale or normalize with preprocessing config)
+        self.preprocessing_config_dict = transformations_list[1].get_config_dict(
         )
 
         return transforms.Compose(transformations_list)
@@ -141,9 +146,18 @@ class FloorTypeDetectionDataset(Dataset):
             Getter method to get loaded self.config_dict.
 
             Returns:
-                - self.config_dict (dict): Dict containing config for preprocessing/ transforms
+                - self.preprocessing_config_dict (dict): Dict containing config for preprocessing/ transforms
         """
         return self.preprocessing_config_dict
+
+    def get_faulty_data_creation_config(self):
+        """
+            Getter method to get loaded self.config_dict.
+
+            Returns:
+                - self.faulty_data_creation_config_dict (dict): Dict containing config for faulty data creation
+        """
+        return self.faulty_data_creation_config_dict
 
     def __len__(self):
         """
