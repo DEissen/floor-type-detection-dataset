@@ -34,27 +34,35 @@ class FloorTypeDetectionDataset(Dataset):
         Dataset class for FTDD (Floor Type Detection Dataset).
     """
 
-    def __init__(self, root_dir, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename=""):
+    def __init__(self, root_dir, sensors, run_path, create_faulty_data=False):
         """
             Constructor for FloorTypeDetectionDataset class.
 
             Parameters:
                 - root_dir (str): Path to dataset
                 - sensors (list): List of all sensors which shall be considered for this dataset
-                - mapping_filename (str): filename of the label mapping JSON file
-                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir 
-                - faulty_data_creation_config_filename (str): Default = "". Name of the faulty data creation JSON file in the configs/ dir 
-                                                              If empty string is provided, no data modification will happen.
+                - run_path (str): Run path to previous run from where config can be loaded. 
+                                  If run_path == "" the default config from the repo will be used.
+                - create_faulty_data (bool): Default = False. Select whether faulty data shall be created or not.
+                                             No data modification will happen, if create_faulty_data == False.
         """
+        # names of the config files:
+        self.preprocessing_config_filename = "preprocessing_config.json"
+        self.faulty_data_creation_config_filename = "faulty_data_creation_config.json"
+        mapping_filename = "label_mapping.json"
+
+        # take of of function parameters
         self.root_dir = root_dir
         self.sensors = sensors
-        self.preprocessing_config_filename = preprocessing_config_filename
-        self.faulty_data_creation_config_filename = faulty_data_creation_config_filename
+        self.run_path = run_path
+        self.create_faulty_data = create_faulty_data
         self.faulty_data_creation_config_dict = {}
+
+        # get transformations for data based on configuration
         self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
-        self.label_mapping_dict = load_json_from_configs(mapping_filename)
+        self.label_mapping_dict = load_json_from_configs(run_path, mapping_filename)
 
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
@@ -71,9 +79,9 @@ class FloorTypeDetectionDataset(Dataset):
         transformations_list = []
 
         # ## Creating faulty data according to fault config before image preprocessing, if fault config was provided
-        if self.faulty_data_creation_config_filename != "":
+        if self.create_faulty_data:
             # only add class for faulty data creation if a path was added
-            transformations_list.append(FTDD_CreateFaultyData(
+            transformations_list.append(FTDD_CreateFaultyData(self.run_path,
                 self.faulty_data_creation_config_filename))
 
             # save faulty data creation config dict for logging if it was provided
@@ -85,9 +93,9 @@ class FloorTypeDetectionDataset(Dataset):
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
         # transformations_list.append(
         #     FTDD_Crop(self.preprocessing_config_filename))
-        transformations_list.append(FTDD_Rescale(
+        transformations_list.append(FTDD_Rescale(self.run_path,
             self.preprocessing_config_filename))
-        transformations_list.append(FTDD_Normalize(
+        transformations_list.append(FTDD_Normalize(self.run_path,
             self.preprocessing_config_filename))
 
         # ## Transform PIL images and numpy arrays to torch Tensors as final step
@@ -174,14 +182,15 @@ class FTDD_Transform_Superclass():
         Superclass for all transform classes for FTDD. Provides __init__() method to load config.
     """
 
-    def __init__(self, config_filename):
+    def __init__(self, run_path, config_filename):
         """
             Constructor for FTDD_Crop class.
 
             Parameters:
+                - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
                 - config_filename (str): Name of the config JSON file in the configs/ dir
         """
-        self.config_dict = load_json_from_configs(
+        self.config_dict = load_json_from_configs(run_path,
             config_filename)
 
     def get_config_dict(self):
@@ -518,10 +527,7 @@ if __name__ == "__main__":
         This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
     """
     # variables for dataset and config to use
-    dataset_path = r"D:\MA_Daten\FTDD2.0_preprocessed\FTDD_2.0_train"
-    mapping_filename = "label_mapping_binary.json"
-    preprocessing_config_filename = "preprocessing_config.json"
-    faulty_data_creation_config_filename = "faulty_data_creation_config.json"
+    dataset_path = r"D:\MA_Daten\FTDD1.6\test"
 
     # list of sensors to use
     sensors = ["BellyCamRight"]
@@ -530,9 +536,9 @@ if __name__ == "__main__":
 
     # create dataset
     transformed_dataset = FloorTypeDetectionDataset(
-        dataset_path, sensors, mapping_filename, preprocessing_config_filename)
+        dataset_path, sensors, run_path="")
     faulty_dataset = FloorTypeDetectionDataset(
-        dataset_path, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename)
+        dataset_path, sensors, run_path="", create_faulty_data=True)
 
     # train_size = int(0.8 * len(transformed_dataset))
     # test_size = len(transformed_dataset) - train_size

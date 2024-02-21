@@ -6,37 +6,37 @@ from matplotlib import pyplot as plt
 import skimage as sk
 from skimage.filters import gaussian
 import cv2
+import os
 from io import BytesIO
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage import zoom as scizoom
 from wand.image import Image as WandImage
 from wand.api import library as wandlibrary
 
+
 def change_brightness(image, min, max):
-    
     random = np.random.uniform(min, max)
     applier = ImageEnhance.Brightness(image)
     modified_image = applier.enhance(random)
     return modified_image
 
+
 def change_contrast(image, min, max):
-    
     random = np.random.uniform(min, max)
     applier = ImageEnhance.Contrast(image)
     modified_image = applier.enhance(random)
     return modified_image
 
+
 def change_sharpness(image, min, max):
-    
     random = np.random.uniform(min, max)
     applier = ImageEnhance.Sharpness(image)
     modified_image = applier.enhance(random)
     return modified_image
 
-# Distortion functions from paper "BENCHMARKING NEURAL NETWORK ROBUSTNESS TO COMMON CORRUPTIONS AND PERTURBATIONS" 
+# Distortion functions from paper "BENCHMARKING NEURAL NETWORK ROBUSTNESS TO COMMON CORRUPTIONS AND PERTURBATIONS"
 # code can be found here: https://github.com/hendrycks/robustness/blob/master/ImageNet-C/create_c/make_imagenet_c.py#L247
 # ------------- helpers
-
 def disk(radius, alias_blur=0.1, dtype=np.float32):
     if radius <= 8:
         L = np.arange(-8, 8 + 1)
@@ -50,6 +50,7 @@ def disk(radius, alias_blur=0.1, dtype=np.float32):
 
     # supersample disk to antialias
     return cv2.GaussianBlur(aliased_disk, ksize=ksize, sigmaX=alias_blur)
+
 
 def plasma_fractal(mapsize=1024, wibbledecay=3):
     """
@@ -73,22 +74,25 @@ def plasma_fractal(mapsize=1024, wibbledecay=3):
         squareaccum = cornerref + np.roll(cornerref, shift=-1, axis=0)
         squareaccum += np.roll(squareaccum, shift=-1, axis=1)
         maparray[stepsize // 2:mapsize:stepsize,
-        stepsize // 2:mapsize:stepsize] = wibbledmean(squareaccum)
+                 stepsize // 2:mapsize:stepsize] = wibbledmean(squareaccum)
 
     def filldiamonds():
         """For each diamond of points stepsize apart,
            calculate middle value as mean of points + wibble"""
         mapsize = maparray.shape[0]
-        drgrid = maparray[stepsize // 2:mapsize:stepsize, stepsize // 2:mapsize:stepsize]
+        drgrid = maparray[stepsize // 2:mapsize:stepsize,
+                          stepsize // 2:mapsize:stepsize]
         ulgrid = maparray[0:mapsize:stepsize, 0:mapsize:stepsize]
         ldrsum = drgrid + np.roll(drgrid, 1, axis=0)
         lulsum = ulgrid + np.roll(ulgrid, -1, axis=1)
         ltsum = ldrsum + lulsum
-        maparray[0:mapsize:stepsize, stepsize // 2:mapsize:stepsize] = wibbledmean(ltsum)
+        maparray[0:mapsize:stepsize, stepsize //
+                 2:mapsize:stepsize] = wibbledmean(ltsum)
         tdrsum = drgrid + np.roll(drgrid, 1, axis=1)
         tulsum = ulgrid + np.roll(ulgrid, -1, axis=0)
         ttsum = tdrsum + tulsum
-        maparray[stepsize // 2:mapsize:stepsize, 0:mapsize:stepsize] = wibbledmean(ttsum)
+        maparray[stepsize // 2:mapsize:stepsize,
+                 0:mapsize:stepsize] = wibbledmean(ttsum)
 
     while stepsize >= 2:
         fillsquares()
@@ -99,49 +103,58 @@ def plasma_fractal(mapsize=1024, wibbledecay=3):
     maparray -= maparray.min()
     return maparray / maparray.max()
 
+
 def clipped_zoom(img, zoom_factor):
     h = img.shape[0]
     # ceil crop height(= crop width)
     ch = int(np.ceil(h / zoom_factor))
 
     top = (h - ch) // 2
-    img = scizoom(img[top:top + ch, top:top + ch], (zoom_factor, zoom_factor, 1), order=1)
+    img = scizoom(img[top:top + ch, top:top + ch],
+                  (zoom_factor, zoom_factor, 1), order=1)
     # trim off any extra pixels
     trim_top = (img.shape[0] - h) // 2
 
     return img[trim_top:trim_top + h, trim_top:trim_top + h]
 
+
 class MotionImage(WandImage):
     def motion_blur(self, radius=0.0, sigma=0.0, angle=0.0):
         wandlibrary.MagickMotionBlurImage(self.wand, radius, sigma, angle)
 
-#--------noise functions
+# --------noise functions
 def gaussian_noise(x, severity=1):
     c = [.08, .12, 0.18, 0.26, 0.38][severity - 1]
 
     x = np.array(x) / 255.
-    return np.clip(x + np.random.normal(size=x.shape, scale=c), 0, 1) * 255
+    res = np.clip(x + np.random.normal(size=x.shape, scale=c), 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
 
 
 def shot_noise(x, severity=1):
     c = [60, 25, 12, 5, 3][severity - 1]
 
     x = np.array(x) / 255.
-    return np.clip(np.random.poisson(x * c) / c, 0, 1) * 255
+    res = np.clip(np.random.poisson(x * c) / c, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def impulse_noise(x, severity=1):
     c = [.03, .06, .09, 0.17, 0.27][severity - 1]
 
     x = sk.util.random_noise(np.array(x) / 255., mode='s&p', amount=c)
-    return np.clip(x, 0, 1) * 255
+    res = np.clip(x, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def speckle_noise(x, severity=1):
     c = [.15, .2, 0.35, 0.45, 0.6][severity - 1]
 
     x = np.array(x) / 255.
-    return np.clip(x + x * np.random.normal(size=x.shape, scale=c), 0, 1) * 255
+    res = np.clip(x + x * np.random.normal(size=x.shape, scale=c), 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
 
-#-------- blur functions
+# -------- blur functions
 def defocus_blur(x, severity=1):
     c = [(3, 0.1), (4, 0.5), (6, 0.5), (8, 0.5), (10, 0.5)][severity - 1]
 
@@ -151,15 +164,20 @@ def defocus_blur(x, severity=1):
     channels = []
     for d in range(3):
         channels.append(cv2.filter2D(x[:, :, d], -1, kernel))
-    channels = np.array(channels).transpose((1, 2, 0))  # 3x224x224 -> 224x224x3
+    channels = np.array(channels).transpose(
+        (1, 2, 0))  # 3x224x224 -> 224x224x3
 
-    return np.clip(channels, 0, 1) * 255
+    res = np.clip(channels, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def glass_blur(x, severity=1):
     # sigma, max_delta, iterations
-    c = [(0.7, 1, 2), (0.9, 2, 1), (1, 2, 3), (1.1, 3, 2), (1.5, 4, 2)][severity - 1]
+    c = [(0.7, 1, 2), (0.9, 2, 1), (1, 2, 3),
+         (1.1, 3, 2), (1.5, 4, 2)][severity - 1]
 
-    x = np.uint8(gaussian(np.array(x) / 255., sigma=c[0], multichannel=True) * 255)
+    x = np.uint8(gaussian(np.array(x) / 255.,
+                 sigma=c[0], multichannel=True) * 255)
 
     # locally shuffle pixels
     for i in range(c[2]):
@@ -170,7 +188,10 @@ def glass_blur(x, severity=1):
                 # swap
                 x[h, w], x[h_prime, w_prime] = x[h_prime, w_prime], x[h, w]
 
-    return np.clip(gaussian(x / 255., sigma=c[0], multichannel=True), 0, 1) * 255
+    res = np.clip(
+        gaussian(x / 255., sigma=c[0], multichannel=True), 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def motion_blur(x, severity=1):
     c = [(10, 3), (15, 5), (15, 8), (15, 12), (20, 15)][severity - 1]
@@ -185,9 +206,12 @@ def motion_blur(x, severity=1):
                      cv2.IMREAD_UNCHANGED)
 
     if x.shape != (224, 224):
-        return np.clip(x[..., [2, 1, 0]], 0, 255)  # BGR to RGB
+        res = np.clip(x[..., [2, 1, 0]], 0, 255)  # BGR to RGB
     else:  # greyscale to RGB
-        return np.clip(np.array([x, x, x]).transpose((1, 2, 0)), 0, 255)
+        res = np.clip(np.array([x, x, x]).transpose((1, 2, 0)), 0, 255)
+
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def zoom_blur(x, severity=1):
     # NOTE: seems only to work with sqaured images!
@@ -203,15 +227,18 @@ def zoom_blur(x, severity=1):
         out += clipped_zoom(x, zoom_factor)
 
     x = (x + out) / (len(c) + 1)
-    return np.clip(x, 0, 1) * 255
+    res = np.clip(x, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def gaussian_blur(x, severity=1):
     c = [1, 2, 3, 4, 6][severity - 1]
 
     x = gaussian(np.array(x) / 255., sigma=c, multichannel=True)
-    return np.clip(x, 0, 1) * 255
+    res = np.clip(x, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
 
-#----------- wheater function
+# ----------- wheater function
 def snow(x, severity=1):
     # NOTE: seems only to work with sqaured images!
     c = [(0.1, 0.3, 3, 0.5, 10, 4, 0.8),
@@ -221,24 +248,31 @@ def snow(x, severity=1):
          (0.55, 0.3, 2.5, 0.85, 12, 12, 0.55)][severity - 1]
 
     x = np.array(x, dtype=np.float32) / 255.
-    snow_layer = np.random.normal(size=x.shape[:2], loc=c[0], scale=c[1])  # [:2] for monochrome
+    snow_layer = np.random.normal(
+        size=x.shape[:2], loc=c[0], scale=c[1])  # [:2] for monochrome
 
     snow_layer = clipped_zoom(snow_layer[..., np.newaxis], c[2])
     snow_layer[snow_layer < c[3]] = 0
 
-    snow_layer = Image.fromarray((np.clip(snow_layer.squeeze(), 0, 1) * 255).astype(np.uint8), mode='L')
+    snow_layer = Image.fromarray(
+        (np.clip(snow_layer.squeeze(), 0, 1) * 255).astype(np.uint8), mode='L')
     output = BytesIO()
     snow_layer.save(output, format='PNG')
     snow_layer = MotionImage(blob=output.getvalue())
 
-    snow_layer.motion_blur(radius=c[4], sigma=c[5], angle=np.random.uniform(-135, -45))
+    snow_layer.motion_blur(
+        radius=c[4], sigma=c[5], angle=np.random.uniform(-135, -45))
 
     snow_layer = cv2.imdecode(np.fromstring(snow_layer.make_blob(), np.uint8),
                               cv2.IMREAD_UNCHANGED) / 255.
     snow_layer = snow_layer[..., np.newaxis]
 
-    x = c[6] * x + (1 - c[6]) * np.maximum(x, cv2.cvtColor(x, cv2.COLOR_RGB2GRAY).reshape(x.shape[0], x.shape[1], 1) * 1.5 + 0.5)
-    return np.clip(x + snow_layer + np.rot90(snow_layer, k=2), 0, 1) * 255
+    x = c[6] * x + (1 - c[6]) * np.maximum(x, cv2.cvtColor(x,
+                                                           cv2.COLOR_RGB2GRAY).reshape(x.shape[0], x.shape[1], 1) * 1.5 + 0.5)
+    res = np.clip(x + snow_layer + np.rot90(snow_layer, k=2), 0, 1) * 255
+
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def frost(x, severity=1):
     # NOTE: Does only work with smaller images (as frost images are also smaller)
@@ -248,21 +282,32 @@ def frost(x, severity=1):
          (0.65, 0.7),
          (0.6, 0.75)][severity - 1]
     idx = np.random.randint(5)
-    filename = ['./frost1.png', './frost2.png', './frost3.png', './frost4.jpg', './frost5.jpg', './frost6.jpg'][idx]
-    frost = cv2.imread(filename)
+    
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = ['./frost1.png', './frost2.png', './frost3.png',
+                './frost4.jpg', './frost5.jpg', './frost6.jpg'][idx]
+    frost = cv2.imread(os.path.join(file_dir, filename))
     # randomly crop and convert to rgb
-    x_start, y_start = np.random.randint(0, frost.shape[0] - 224), np.random.randint(0, frost.shape[1] - 224)
+    x_start, y_start = np.random.randint(
+        0, frost.shape[0] - 224), np.random.randint(0, frost.shape[1] - 224)
     frost = frost[x_start:x_start + 224, y_start:y_start + 224][..., [2, 1, 0]]
 
-    return np.clip(c[0] * np.array(x) + c[1] * frost, 0, 255)
+    res = np.clip(c[0] * np.array(x) + c[1] * frost, 0, 255)
+
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def fog(x, severity=1):
     c = [(1.5, 2), (2, 2), (2.5, 1.7), (2.5, 1.5), (3, 1.4)][severity - 1]
 
     x = np.array(x) / 255.
     max_val = x.max()
-    x += c[0] * plasma_fractal(wibbledecay=c[1])[:x.shape[0], :x.shape[1]][..., np.newaxis]
-    return np.clip(x * max_val / (max_val + c[0]), 0, 1) * 255
+    x += c[0] * plasma_fractal(wibbledecay=c[1]
+                               )[:x.shape[0], :x.shape[1]][..., np.newaxis]
+    res = np.clip(x * max_val / (max_val + c[0]), 0, 1) * 255
+
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def spatter(x, severity=1):
     c = [(0.65, 0.3, 4, 0.69, 0.6, 0),
@@ -301,7 +346,10 @@ def spatter(x, severity=1):
         color = cv2.cvtColor(color, cv2.COLOR_BGR2BGRA)
         x = cv2.cvtColor(x, cv2.COLOR_BGR2BGRA)
 
-        return cv2.cvtColor(np.clip(x + m * color, 0, 1), cv2.COLOR_BGRA2BGR) * 255
+        res = cv2.cvtColor(np.clip(x + m * color, 0, 1),
+                           cv2.COLOR_BGRA2BGR) * 255
+
+        return Image.fromarray(res.astype(np.uint8))
     else:
         m = np.where(liquid_layer > c[3], 1, 0)
         m = gaussian(m.astype(np.float32), sigma=c[4])
@@ -316,10 +364,11 @@ def spatter(x, severity=1):
         color *= m[..., np.newaxis]
         x *= (1 - m[..., np.newaxis])
 
-        return np.clip(x + color, 0, 1) * 255
+        res = np.clip(x + color, 0, 1) * 255
 
-#---------- digital
+        return Image.fromarray(res.astype(np.uint8))
 
+# ---------- digital
 def brightness(x, severity=1):
     c = [.1, .2, .3, .4, .5][severity - 1]
 
@@ -328,14 +377,19 @@ def brightness(x, severity=1):
     x[:, :, 2] = np.clip(x[:, :, 2] + c, 0, 1)
     x = sk.color.hsv2rgb(x)
 
-    return np.clip(x, 0, 1) * 255
+    res = np.clip(x, 0, 1) * 255
+
+    return Image.fromarray(res.astype(np.uint8))
+
 
 def contrast(x, severity=1):
     c = [0.4, .3, .2, .1, .05][severity - 1]
 
     x = np.array(x) / 255.
     means = np.mean(x, axis=(0, 1), keepdims=True)
-    return np.clip((x - means) * c + means, 0, 1) * 255
+    res = np.clip((x - means) * c + means, 0, 1) * 255
+
+    return Image.fromarray(res.astype(np.uint8))
 
 
 def saturate(x, severity=1):
@@ -346,7 +400,8 @@ def saturate(x, severity=1):
     x[:, :, 1] = np.clip(x[:, :, 1] * c[0] + c[1], 0, 1)
     x = sk.color.hsv2rgb(x)
 
-    return np.clip(x, 0, 1) * 255
+    res = np.clip(x, 0, 1) * 255
+    return Image.fromarray(res.astype(np.uint8))
 
 # elastic doesn't work well due to black border around the images
 # # mod of https://gist.github.com/erniejunior/601cdf56d2b424757de5
@@ -381,6 +436,7 @@ def saturate(x, severity=1):
 #     indices = np.reshape(y + dy, (-1, 1)), np.reshape(x + dx, (-1, 1)), np.reshape(z, (-1, 1))
 #     return np.clip(map_coordinates(image, indices, order=1, mode='reflect').reshape(shape), 0, 1) * 255
 
+
 def jpeg_compression(x, severity=1):
     c = [25, 18, 15, 10, 7][severity - 1]
 
@@ -388,22 +444,23 @@ def jpeg_compression(x, severity=1):
     x.save(output, 'JPEG', quality=c)
     x = Image.open(output)
 
-    return np.asarray(x)
+    return Image.fromarray(np.asarray(x).astype(np.uint8))
 
 
 def pixelate(x, severity=1):
     c = [0.6, 0.5, 0.4, 0.3, 0.25][severity - 1]
 
-    x_shape = np.asarray(x).shape # store shape from beginning for recreating correct size
+    # store shape from beginning for recreating correct size
+    x_shape = np.asarray(x).shape
 
     x = x.resize((int(x_shape[1] * c), int(x_shape[0] * c)), Image.BOX)
     x = x.resize((x_shape[1], x_shape[0]), Image.BOX)
 
-    return np.asarray(x)
+    return Image.fromarray(np.asarray(x).astype(np.uint8))
 
 
 if __name__ == "__main__":
-    path = r"D:\MA_Daten\FTDD2.0_preprocessed\FTDD_2.0_train\HeadCamLeft\10_49_15_029.jpg"
+    path = r"D:\MA_Daten\FTDD1.5_preprocessed\FTDD_2.0_train\HeadCamLeft\10_49_15_029.jpg"
     img = Image.open(path)
 
     # img.show()
@@ -415,10 +472,7 @@ if __name__ == "__main__":
     # Wheather:
     #   snow, frost, fog, (spatter)
     # Digital:
-    #   brightness, contrast, (saturate), elastic_transform, jpeg_compression, pixelate
-    mod = gaussian_noise(img, 5)
+    #   brightness, contrast, (saturate), jpeg_compression, pixelate
+    mod = pixelate(img, 3)
 
-    plt.imshow(mod/255)
-
-
-    plt.show()
+    mod.show()

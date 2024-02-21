@@ -33,7 +33,7 @@ This section explains how to use the code in this repo for creating a dataset us
     - [Optional] *faulty_data_creation_config_filename (str):* Name of the faulty data creation JSON file in the configs/ dir of the repository. If nothing is provided, the data won't be manipulated.
 3. [Optional] Change config to your needs. The following config files are relevant for the dataset creation:
     - *configs/faulty_data_creation_config.json:* Config for failure case creation (selection of parameters for data modification and which sensors shall be modified)
-    - *configs/label_mapping_full_dataset.json:* Mapping of label name to integer value. You can alternatively also use the file *configs/label_mapping_binary.json* if you are using and older version with only two labels.
+    - *configs/label_mapping.json:* Mapping of label name to integer value.
     - *configs/preprocessing_config.json:* Config for the data preprocessing, e.g. image cropping and resizing
 4. Create list with sensor names which shall be used, e.g.: *sensors = ["accelerometer", "BellyCamRight"]*
 5. Create instance of FloorTypeDetectionDataset() class by providing parameters from step 2
@@ -45,8 +45,7 @@ This section contains a brief overview about all files in the repository. The co
 This directory contains all config files for data preparation and dataset creation.
     - *data_preparation_config.gin:* Config file for data preparation
     - *faulty_data_creation_config.json:* Config file for failure case creation
-    - *label_mapping_binary.json:* Mapping of label name to integer value when only two classes are used
-    - *label_mapping_full_dataset.json:* Mapping of label name to integer value when complete dataset is used
+    - *label_mapping.json:* Mapping of label name to integer value when complete dataset is used
     - *preprocessing_config.json:* Config file for the data preprocessing, e.g. image cropping and resizing
 - **custom_utils/** \
 This module contains some custom utility functions used in the repository.
