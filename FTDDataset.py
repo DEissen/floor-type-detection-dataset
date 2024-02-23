@@ -36,7 +36,7 @@ class FloorTypeDetectionDataset(Dataset):
 
     def __init__(self, root_dir, sensors, run_path, create_faulty_data=False):
         """
-            Constructor for FloorTypeDetectionDataset class.
+            Init method for FloorTypeDetectionDataset class.
 
             Parameters:
                 - root_dir (str): Path to dataset
@@ -185,7 +185,7 @@ class FTDD_Transform_Superclass():
 
     def __init__(self, run_path, config_filename):
         """
-            Constructor for FTDD_Crop class.
+            Init method for FTDD_Crop class.
 
             Parameters:
                 - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
