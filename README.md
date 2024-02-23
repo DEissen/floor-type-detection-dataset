@@ -5,6 +5,7 @@ Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded wit
 
 For more details about how to create a dataset see the following chapters. 
 
+TODO: Update README at end of MA3606
 
 # How to use the code to create a new dataset from measurements?
 This section explains how to use the code in this repo for creating a dataset usable in PyTorch from measurements. Further details about the code can be found in later chapters.
