@@ -5,6 +5,7 @@ import logging
 # allow truncated images for PIL to process
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+# custom imports
 from custom_utils.utils import load_json_from_configs
 from visualization.visualizeImages import show_image_comparison
 from data_preprocessing.image_preprocessing import image_crop, image_rescale
@@ -84,7 +85,8 @@ def preprocess_timeseries_data(dataset_path, sensor, config_dict):
             - sensor (str): Name of the IMU data to perform preprocessing for 
             - config_dict (dict): Dict containing the configuration for all sensors of the dataset
     """
-    logging.info(f"This would be the timeseries data preprocessing for {sensor}")
+    logging.info(
+        f"This would be the timeseries data preprocessing for {sensor}")
 
 
 if __name__ == "__main__":
@@ -94,4 +96,5 @@ if __name__ == "__main__":
 
     measurement_path = "./results"
 
-    data_preprocessing_main(measurement_path, config_dict, preprocess_images=True, preprocess_IMU_data=False, resize_images=True)
+    data_preprocessing_main(measurement_path, config_dict,
+                            preprocess_images=True, preprocess_IMU_data=False, resize_images=True)

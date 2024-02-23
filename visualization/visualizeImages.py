@@ -91,7 +91,7 @@ def show_all_images_afterwards(measurement_path):
             break
 
 
-def show_all_images_afterwards_including_imu_data(measurement_path, imu_data, imu_offset = 0):
+def show_all_images_afterwards_including_imu_data(measurement_path, imu_data, imu_offset=0):
     """
         Function to show all images for all cameras from measurement_path in one figure after another.
 
@@ -122,6 +122,7 @@ def show_all_images_afterwards_including_imu_data(measurement_path, imu_data, im
             # stop in case of IndexError, which can happen if BellyCam has more images then the other cameras
             break
 
+
 def show_image_comparison(old_image, new_image, title):
     """
         Function to show two images next to each other (e.g. to visualize image preprocessing).
@@ -137,7 +138,7 @@ def show_image_comparison(old_image, new_image, title):
     ax = []
 
     plt.title(title)
-    
+
     ax.append(fig.add_subplot(rows, columns, 1))
     ax[-1].set_title("old image")
     plt.imshow(old_image)
@@ -146,6 +147,7 @@ def show_image_comparison(old_image, new_image, title):
     ax[-1].set_title("preprocessed image")
     plt.imshow(new_image)
     plt.show()
+
 
 if __name__ == "__main__":
     # file_dir = os.path.dirname(os.path.abspath(__file__))

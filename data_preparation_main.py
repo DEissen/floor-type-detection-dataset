@@ -44,10 +44,12 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     logger = CustomLogger()
     logger.start_logger(temp_path)
 
-    logging.info(f"### Start data preparation for measurement {measurement_path} ###")
+    logging.info(
+        f"### Start data preparation for measurement {measurement_path} ###")
 
     if normalize_IMU_data_measurement_based and preprocess_IMU_data_dataset_based:
-        logging.info("Dataset creation aborted, due to invalid config (IMU data was selected to be preprocessed/ normalized twice!)")
+        logging.info(
+            "Dataset creation aborted, due to invalid config (IMU data was selected to be preprocessed/ normalized twice!)")
         return
 
     if measurements_are_copied == False:
@@ -60,7 +62,8 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     # uncomment to check how data looks before preparation step
     # visualize_result()
 
-    logging.info("\n\n### Step 2: Downsampling of IMU data and create windows for IMU data ###")
+    logging.info(
+        "\n\n### Step 2: Downsampling of IMU data and create windows for IMU data ###")
     timeseries_downsampler = TimeseriesDownsamplingForWholeMeasurement(
         temp_path)
     timeseries_downsampler.start_downsampling()
@@ -75,7 +78,8 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
         create_sliding_windows_and_save_them(
             temp_path, earliest_timestamp, sensor, window_size, normalize_IMU_data_measurement_based)
 
-    logging.info("\n\n### Step 3: Get synchronized timestamps and delete data previous to synchronized timestamp ###")
+    logging.info(
+        "\n\n### Step 3: Get synchronized timestamps and delete data previous to synchronized timestamp ###")
     timestamps = get_synchronized_timestamps(temp_path)
 
     for key, timestamp in timestamps.items():
@@ -90,7 +94,8 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     earliest_last_image_timestamp = unify_image_timestamps(
         temp_path, timestamps["IMU"])
 
-    logging.info("\n\n### Step 5: Deletion of data for timestamps that are not available for all sensors ###")
+    logging.info(
+        "\n\n### Step 5: Deletion of data for timestamps that are not available for all sensors ###")
     remove_obsolete_data_at_end(temp_path, earliest_last_image_timestamp)
 
     logging.info("\n\n### Step 6: Create labels csv file ###")
@@ -99,15 +104,18 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     logging.info("\n\n### Step 7: Remove incomplete data samples ###")
     incomplete_samples_list, complete_incomplete_samples_list = get_incomplete_data_samples(
         temp_path)
-    logging.info(f"The files for the following timestamps will be deleted now:")
+    logging.info(
+        f"The files for the following timestamps will be deleted now:")
     # log info about missing files
     for incomplete_samples in complete_incomplete_samples_list:
         logging.info(incomplete_samples)
     delete_incomplete_data_samples(temp_path, incomplete_samples_list)
     update_labels_csv(temp_path, incomplete_samples_list)
-    logging.info("Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
+    logging.info(
+        "Data for other sensors was removed for above mentioned incomplete samples including update of 'lables.csv'")
 
-    logging.info("\n\n### Step 8: Perform preprocessing for all data samples ###")
+    logging.info(
+        "\n\n### Step 8: Perform preprocessing for all data samples ###")
     config_path = "preprocessing_config.json"
     config_dict = load_json_from_configs(config_path)
     data_preprocessing_main(
@@ -157,7 +165,7 @@ if __name__ == "__main__":
     gin.parse_config_files_and_bindings(
         [gin_config_path], variant_specific_bindings)
 
-    ######### measurement based solution
+    # ######### measurement based solution
     # # measurement_path = "./testdata/measurement_25_07__15_03"
     # # FTDD_1 measruements: measurement_29_08__09_01, measurement_29_08__09_20, measurement_29_08__09_26, measurement_29_08__09_32, measurement_29_08__09_38,
     # #                      measurement_29_08__09_42, measurement_29_08__10_11, measurement_29_08__10_15
@@ -165,7 +173,7 @@ if __name__ == "__main__":
 
     # data_preparation_main(measurement_path)
 
-    ######## create dataset from multiple measurements
+    # ######## create dataset from multiple measurements
     measurement_base_path = r"C:\Users\Dominik\Downloads\test_data"
     final_dataset_path = r"C:\Users\Dominik\Downloads\test_combination\FTDD_2.0_test"
     file_dir = os.path.dirname(os.path.abspath(__file__))

@@ -282,7 +282,7 @@ def frost(x, severity=1):
          (0.65, 0.7),
          (0.6, 0.75)][severity - 1]
     idx = np.random.randint(5)
-    
+
     file_dir = os.path.dirname(os.path.abspath(__file__))
     filename = ['./frost1.png', './frost2.png', './frost3.png',
                 './frost4.jpg', './frost5.jpg', './frost6.jpg'][idx]

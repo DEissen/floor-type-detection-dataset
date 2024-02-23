@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def offset_failure(data, min, max):
     offset = np.random.uniform(min, max)
     return data + offset
@@ -30,6 +29,7 @@ def precision_degradation(data, var):
 
 def total_failure(data, total_failure_value):
     return np.zeros(np.shape(data)) + total_failure_value
+
 
 if __name__ == "__main__":
     test = np.expand_dims(np.arange(20, ), axis=1)
@@ -84,5 +84,3 @@ if __name__ == "__main__":
     plt.plot(x, total_data)
     plt.plot(x, offset_data)
     plt.show()
-
-

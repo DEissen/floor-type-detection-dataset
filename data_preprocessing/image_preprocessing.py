@@ -2,6 +2,7 @@ from PIL import ImageFile, Image
 # allow truncated images for PIL to process
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+
 def image_crop(image, config_dict):
     """
         Method to crop all images in data_dict according to the config from config_dict.
@@ -27,6 +28,7 @@ def image_crop(image, config_dict):
         (new_left, new_top, new_right, new_bottom))
 
     return image
+
 
 def image_rescale(image, config_dict):
     """

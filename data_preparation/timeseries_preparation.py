@@ -356,9 +356,10 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
             break
 
         # calculate timestamp for window
-        # window has timestamp of the last value in the window 
-        # => current window starts at i after earliest timestamp and last value is window_size afterwards 
-        new_timestamp = earliest_timestamp + timedelta(milliseconds=(window_size + i)*20)
+        # window has timestamp of the last value in the window
+        # => current window starts at i after earliest timestamp and last value is window_size afterwards
+        new_timestamp = earliest_timestamp + \
+            timedelta(milliseconds=(window_size + i)*20)
 
         # save new window
         new_filename = os.path.join(measurement_path, sensor_name, datetime.strftime(
@@ -391,7 +392,7 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
             data_list.extend(np.genfromtxt(file, delimiter=';'))
         else:
             # for many files in the dir the preparing was most likely already done, thus only part of data is needed
-            data_list.extend(np.genfromtxt(file, delimiter=';')[:10,:])
+            data_list.extend(np.genfromtxt(file, delimiter=';')[:10, :])
         if delete_source:
             os.remove(file)
 

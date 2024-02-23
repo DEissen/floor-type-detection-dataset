@@ -330,7 +330,8 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
 
         # in case the IMU timestamp is the last allowed timestamp, deletion for IMU data is not needed
         deletion_for_IMU_needed = False
-        logging.info("No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
+        logging.info(
+            "No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
 
     logging.info(
         f"All data samples after {get_timestamp_string_from_timestamp(last_allowed_timestamp)} will be deleted now.")

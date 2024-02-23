@@ -50,7 +50,8 @@ def copy_measurement_to_temp(measurement_path):
     file_dir = os.path.dirname(os.path.abspath(__file__))
     temp_path = os.path.join(file_dir, os.pardir, "temp")
 
-    logging.info(f"{measurement_path} will be copied/ extracted to {temp_path}")
+    logging.info(
+        f"{measurement_path} will be copied/ extracted to {temp_path}")
 
     if ".zip" == measurement_path[-4:]:
         # unzip zip file to temp path if measurement path point to zip file

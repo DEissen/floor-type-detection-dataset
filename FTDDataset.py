@@ -62,7 +62,8 @@ class FloorTypeDetectionDataset(Dataset):
         self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
-        self.label_mapping_dict = load_json_from_configs(run_path, mapping_filename)
+        self.label_mapping_dict = load_json_from_configs(
+            run_path, mapping_filename)
 
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
@@ -82,7 +83,7 @@ class FloorTypeDetectionDataset(Dataset):
         if self.create_faulty_data:
             # only add class for faulty data creation if a path was added
             transformations_list.append(FTDD_CreateFaultyData(self.run_path,
-                self.faulty_data_creation_config_filename))
+                                                              self.faulty_data_creation_config_filename))
 
             # save faulty data creation config dict for logging if it was provided
             self.faulty_data_creation_config_dict = transformations_list[0].get_config_dict(
@@ -94,9 +95,9 @@ class FloorTypeDetectionDataset(Dataset):
         # transformations_list.append(
         #     FTDD_Crop(self.preprocessing_config_filename))
         transformations_list.append(FTDD_Rescale(self.run_path,
-            self.preprocessing_config_filename))
+                                                 self.preprocessing_config_filename))
         transformations_list.append(FTDD_Normalize(self.run_path,
-            self.preprocessing_config_filename))
+                                                   self.preprocessing_config_filename))
 
         # ## Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
@@ -191,7 +192,7 @@ class FTDD_Transform_Superclass():
                 - config_filename (str): Name of the config JSON file in the configs/ dir
         """
         self.config_dict = load_json_from_configs(run_path,
-            config_filename)
+                                                  config_filename)
 
     def get_config_dict(self):
         """
