@@ -89,6 +89,18 @@ class FloorTypeDetectionDataset(Dataset):
             self.faulty_data_creation_config_dict = transformations_list[0].get_config_dict(
             )
 
+            # print info to user in case computation intensive version is selected
+            if (self.faulty_data_creation_config_dict["images"]["Cams for glass_blur"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for motion_blur"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for zoom_blur"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for snow"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for frost"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for fog"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for new brightness"] != [""] or
+                self.faulty_data_creation_config_dict["images"]["Cams for saturate"] != [""]):
+                print("Training/ Evaluation might be significantly longer than usual due to selection of computation intensive failure case creation"
+                      "(glass_blur, motion_blur, zoom_blur, snow, frost, fog, new brightness or saturate)")
+
         # ## Image preprocessing
         # TODO: make crop and rescale configurable or detect automatically whether it is needed!
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
