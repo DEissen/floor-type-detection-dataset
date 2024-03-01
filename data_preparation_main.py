@@ -117,7 +117,7 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     logging.info(
         "\n\n### Step 8: Perform preprocessing for all data samples ###")
     config_path = "preprocessing_config.json"
-    config_dict = load_json_from_configs(config_path)
+    config_dict = load_json_from_configs(run_path="", json_filename=config_path)
     data_preprocessing_main(
         temp_path, config_dict, preprocess_images, preprocess_IMU_data_dataset_based, resize_images)
 
@@ -154,7 +154,7 @@ def visualize_result(imu_offset=0, temp_path=None):
         temp_path = os.path.join(file_dir, "temp")
 
     # determines which sensor is used for visualization
-    data = load_complete_IMU_measurement(temp_path, "accelerometer")
+    data = load_complete_IMU_measurement(temp_path, "accelerometer", load_from_sliding_window=True)
     show_all_images_afterwards_including_imu_data(temp_path, data, imu_offset)
 
 

@@ -367,7 +367,7 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
         np.savetxt(new_filename, window, delimiter=";")
 
 
-def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False):
+def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False, load_from_sliding_window=False):
     """
         Function to load a complete IMU measurement for sensor from measurement_path in one array.
         In case the IMU dir contains more than 60 files, only the first part of the data of each file is taken,
@@ -377,6 +377,7 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
             - measurement_path (str): Path to the measurement
             - sensor (str): Name of the sensor to load the data for
             - delete_source (bool): If True, the files will be deleted after data was loaded (default = False)
+            - load_from_sliding_window (bool): If True, the only the first 10 data points will be taken to not load double data from sliding windows (default = False)
 
         Returns:
             - (np.array) Numpy array with data for sensor
@@ -387,12 +388,12 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
 
     data_list = []
     for file in filename_list:
-        if len(filename_list) < 60:
-            # for short file list the whole file can be taken
-            data_list.extend(np.genfromtxt(file, delimiter=';'))
-        else:
+        if load_from_sliding_window:
             # for many files in the dir the preparing was most likely already done, thus only part of data is needed
             data_list.extend(np.genfromtxt(file, delimiter=';')[:10, :])
+        else:
+            # for short file list the whole file can be taken
+            data_list.extend(np.genfromtxt(file, delimiter=';'))
         if delete_source:
             os.remove(file)
 
