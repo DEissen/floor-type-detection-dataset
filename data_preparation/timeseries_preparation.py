@@ -390,7 +390,10 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False,
     for file in filename_list:
         if load_from_sliding_window:
             # for many files in the dir the preparing was most likely already done, thus only part of data is needed
-            data_list.extend(np.genfromtxt(file, delimiter=';')[:10, :])
+            try:
+                data_list.extend(np.genfromtxt(file, delimiter=';')[:10, :])
+            except IndexError:
+                data_list.extend(np.genfromtxt(file, delimiter=';')[:10]) # happens in case data has only one channel (e.g. bodyHeight)
         else:
             # for short file list the whole file can be taken
             data_list.extend(np.genfromtxt(file, delimiter=';'))

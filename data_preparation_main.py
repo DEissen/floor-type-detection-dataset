@@ -2,6 +2,8 @@ import os
 import gin
 import shutil
 import logging
+import json
+import numpy as np
 
 # custom imports
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir, load_json_from_configs, CustomLogger
@@ -157,6 +159,37 @@ def visualize_result(imu_offset=0, temp_path=None):
     data = load_complete_IMU_measurement(temp_path, "accelerometer", load_from_sliding_window=True)
     show_all_images_afterwards_including_imu_data(temp_path, data, imu_offset)
 
+def calculate_std_and_mean_for_timeseries_sensor(measurement_path, sensor):
+    print(f"Determine std and mean for {sensor}")
+
+    res = {}
+    data_from_sliding_window = load_complete_IMU_measurement(measurement_path, sensor, load_from_sliding_window=True)
+    
+    res["mean"] =  np.mean(data_from_sliding_window, axis=0).tolist()
+    res["std"] = np.std(data_from_sliding_window, axis=0).tolist()
+
+    return res
+
+def determine_and_store_all_std_and_mean_for_dataset(measurement_path):
+    std_mean_dict = {}
+
+    print("Start determining std and mean values for all timeseries sensors.")
+    
+    for root, dirs, files in os.walk(measurement_path):
+        for dir in dirs:
+            if not "Cam" in dir:
+                std_mean_dict[dir] = calculate_std_and_mean_for_timeseries_sensor(measurement_path, dir)
+
+        
+        # break after first for loop to only explore the top level of measurement_base_path
+        break
+
+    json_filename = os.path.join(measurement_path, "std_mean_values.json")
+
+    with open(json_filename, "w") as fp:
+        json.dump(std_mean_dict, fp, indent=3)
+    
+    print(f"Stored result in file {json_filename}")
 
 if __name__ == "__main__":
     # get and use gin config
@@ -203,3 +236,5 @@ if __name__ == "__main__":
 
     # combine measurements to dataset at the end
     combine_measurements_to_dataset(result_dir, final_dataset_path)
+
+    determine_and_store_all_std_and_mean_for_dataset(final_dataset_path)
