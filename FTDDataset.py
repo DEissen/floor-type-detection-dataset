@@ -91,13 +91,13 @@ class FloorTypeDetectionDataset(Dataset):
 
             # print info to user in case computation intensive version is selected
             if (self.faulty_data_creation_config_dict["images"]["Cams for glass_blur"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for motion_blur"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for zoom_blur"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for snow"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for frost"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for fog"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for new brightness"] != [""] or
-                self.faulty_data_creation_config_dict["images"]["Cams for saturate"] != [""]):
+                    self.faulty_data_creation_config_dict["images"]["Cams for motion_blur"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for zoom_blur"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for snow"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for frost"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for fog"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for new brightness"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for saturate"] != [""]):
                 print("\n!!!! Training/ Evaluation might be significantly longer than usual due to selection of computation intensive failure case creation "
                       "(glass_blur, motion_blur, zoom_blur, snow, frost, fog, new brightness or saturate) !!!!\n")
 
@@ -109,7 +109,7 @@ class FloorTypeDetectionDataset(Dataset):
         transformations_list.append(FTDD_Rescale(self.run_path,
                                                  self.preprocessing_config_filename))
         transformations_list.append(FTDD_Normalize(self.run_path,
-                                                   self.preprocessing_config_filename))
+                                                   self.preprocessing_config_filename, self.root_dir))
 
         # ## Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
@@ -197,7 +197,7 @@ class FTDD_Transform_Superclass():
 
     def __init__(self, run_path, config_filename):
         """
-            Init method for FTDD_Crop class.
+            Init method for FTDD_Transform_Superclass class.
 
             Parameters:
                 - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
@@ -513,6 +513,41 @@ class FTDD_ToTensor():
 
 
 class FTDD_Normalize(FTDD_Transform_Superclass):
+    """
+        Class to normalize images and timeseries data for preprocessing of FTDD. Child of FTDD_Transform_Superclass, where __init__() method is relevant.
+    """
+
+    def __init__(self, run_path, config_filename, dataset_path):
+        """
+            Init method for FTDD_Normalize class.
+
+            Parameters:
+                - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
+                - config_filename (str): Name of the config JSON file in the configs/ dir
+                - dataset_path (str): Path to dataset
+        """
+        super().__init__(run_path, config_filename)
+
+        self.timeseries_normalization_dict = self.__get_timeseries_normalization_dict(
+            dataset_path)
+
+    def __get_timeseries_normalization_dict(self, dataset_path):
+        """
+            Private method to load timeseries data normalization dict from dataset.
+
+            Parameters:
+                - dataset_path (str): Path to dataset
+
+            Returns:
+                - mean_std_dict (dict): Dict containing values for normalization for all sensors from dataset
+        """
+        json_path = os.path.join(dataset_path, "std_mean_values.json")
+
+        with open(json_path, "r") as f:
+            mean_std_dict = json.load(f)
+
+        return mean_std_dict
+
     def __call__(self, data_dict: dict):
         """
             Method to normalize all images data_dict by dividing through 255 and converts PIL image to np.array.
@@ -530,7 +565,16 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
                     data_dict[sensor_name] = np.array(
                         data_dict[sensor_name], dtype=np.float32) / 255
             else:
-                pass  # IMU data is already normalized during data preparation
+                if self.config_dict["normalize_timeseries_data"]:
+                    # get data, mean and std for sensor
+                    data = data_dict[sensor_name]
+                    mean = self.timeseries_normalization_dict[sensor_name]["mean"]
+                    std = self.timeseries_normalization_dict[sensor_name]["std"]
+
+                    # perform z-score normalization
+                    normalized_data = (data - mean) / std
+
+                    data_dict[sensor_name] = normalized_data
 
         return data_dict
 

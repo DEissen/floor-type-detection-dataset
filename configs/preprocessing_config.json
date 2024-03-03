@@ -1,4 +1,6 @@
 {
+    "normalize_timeseries_data": true,
+    
     "normalize_images": true,
     "BellyCamLeft": {
 
