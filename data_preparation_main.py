@@ -2,6 +2,8 @@ import os
 import gin
 import shutil
 import logging
+import json
+import numpy as np
 
 # custom imports
 from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_prepared_dataset, clean_results_dir, load_json_from_configs, CustomLogger
@@ -117,7 +119,7 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     logging.info(
         "\n\n### Step 8: Perform preprocessing for all data samples ###")
     config_path = "preprocessing_config.json"
-    config_dict = load_json_from_configs(config_path)
+    config_dict = load_json_from_configs(run_path="", json_filename=config_path)
     data_preprocessing_main(
         temp_path, config_dict, preprocess_images, preprocess_IMU_data_dataset_based, resize_images)
 
@@ -154,9 +156,58 @@ def visualize_result(imu_offset=0, temp_path=None):
         temp_path = os.path.join(file_dir, "temp")
 
     # determines which sensor is used for visualization
-    data = load_complete_IMU_measurement(temp_path, "accelerometer")
+    data = load_complete_IMU_measurement(temp_path, "accelerometer", load_from_sliding_window=True)
     show_all_images_afterwards_including_imu_data(temp_path, data, imu_offset)
 
+def calculate_std_and_mean_for_timeseries_sensor(dataset_path, sensor):
+    """
+        Function to calculate std and mean values for all channels for the provided sensor based on all files present in dataset.
+
+        Parameters:
+            - dataset_path (str): Path to dataset
+            - sensor (str): Name of sensor to determine std and mean for
+
+        Returns:
+            - res (dict): Dict containing mean and std values for the sensor (keys are "std" and "mean")
+    """
+    print(f"Determine std and mean for {sensor}")
+
+    res = {}
+    data_from_sliding_window = load_complete_IMU_measurement(dataset_path, sensor, load_from_sliding_window=True)
+    
+    res["mean"] =  np.mean(data_from_sliding_window, axis=0).tolist()
+    res["std"] = np.std(data_from_sliding_window, axis=0).tolist()
+
+    return res
+
+def determine_and_store_all_std_and_mean_for_dataset(dataset_path):
+    """
+        Function to create json file containing std and mean values for all channels of each time series sensor, which can be used for normalization later.
+
+        Parameters:
+            - dataset_path (str): Path to dataset
+    """
+    std_mean_dict = {}
+
+    print("Start determining std and mean values for all timeseries sensors.")
+    
+    # get std and mean for all time series sensors
+    for root, dirs, files in os.walk(dataset_path):
+        for dir in dirs:
+            if not "Cam" in dir:
+                std_mean_dict[dir] = calculate_std_and_mean_for_timeseries_sensor(dataset_path, dir)
+
+        
+        # break after first for loop to only explore the top level of measurement_base_path
+        break
+
+    # store dict with the values in dataset
+    json_filename = os.path.join(dataset_path, "std_mean_values.json")
+
+    with open(json_filename, "w") as fp:
+        json.dump(std_mean_dict, fp, indent=3)
+    
+    print(f"Stored result in file {json_filename}")
 
 if __name__ == "__main__":
     # get and use gin config
@@ -203,3 +254,5 @@ if __name__ == "__main__":
 
     # combine measurements to dataset at the end
     combine_measurements_to_dataset(result_dir, final_dataset_path)
+
+    determine_and_store_all_std_and_mean_for_dataset(final_dataset_path)
