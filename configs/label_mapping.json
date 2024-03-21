@@ -1,0 +1,8 @@
+{
+    "parquet": 0,
+    "road": 1,
+    "vinyl flooring": 2,
+    "tiles": 3,
+    "grass":4,
+    "cobblestone":5
+}

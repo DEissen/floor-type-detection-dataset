@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 import json
 import numpy as np
+import logging
 
 
 def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
@@ -61,7 +62,7 @@ def get_synchronized_timestamps(measurement_path, earliest_IMU_timestamp=None):
     if max_time_diff > timedelta(milliseconds=200):
         # in earliest_IMU_timestamp was not provided as a parameter but taken from files, this is plausible as the first IMU measurement might have started too early
         if earliest_IMU_timestamp == None:
-            print("The maximum time diff of all cameras is greater than 200 ms (sampling rate of cameras), which means earliest IMU measurement is older than earliest picture! \
+            logging.info("The maximum time diff of all cameras is greater than 200 ms (sampling rate of cameras), which means earliest IMU measurement is older than earliest picture! \
                     \nThus synchronized timestamps will be recalculated for expected first parallel IMU measurement when last camera started taking pictures.\n")
 
             # new timestamp must be fitting to the 50 Hz capturing rate of the IMU data => thus corrected IMU timestamp must updated by time diff in 20 ms steps
@@ -329,9 +330,10 @@ def remove_obsolete_data_at_end(measurement_path, last_allowed_timestamp_images)
 
         # in case the IMU timestamp is the last allowed timestamp, deletion for IMU data is not needed
         deletion_for_IMU_needed = False
-        print("No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
+        logging.info(
+            "No deletion of data from IMU measurements needed anymore, as they have the earliest last timestamp.")
 
-    print(
+    logging.info(
         f"All data samples after {get_timestamp_string_from_timestamp(last_allowed_timestamp)} will be deleted now.")
 
     # delete obsolete files which not every camera contains
@@ -426,7 +428,7 @@ def create_label_csv(measurement_path):
     np.savetxt(os.path.join(measurement_path, "labels.csv"),
                timestamp_label_list, delimiter=";", header="timestamp;label", fmt="%s")
 
-    print("File 'label.csv' was created.")
+    logging.info("File 'label.csv' was created.")
 
 
 if __name__ == "__main__":

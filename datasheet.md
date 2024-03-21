@@ -2,7 +2,7 @@
 This README acts as a datasheet for FTDD.
 
 # General Infos
-FTDD -  Version 0.1_stable \
+FTDD -  Version 2.0 \
 **Author:** Dominik Eißen \
 **Mail:** st177975@stud.uni-stuttgart.de
 
@@ -11,9 +11,8 @@ FTDD -  Version 0.1_stable \
 In order to use the FTD dataset, you have to use the FloorTypeDetectionDataset() class from file ./FTDDataset.py in the [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset) repository. Thus it's recommended to copy the repo into your repository as a submodule. In order to use the FloorTypeDetectionDataset() class, you have to provide following parameters:
 - **root_dir (str):** Path to prepared dataset
 - **sensors (list):** List of all sensors which shall be considered
-- **mapping_filename (str):** filename of the label mapping JSON file
-- **preprocessing_config_filename (str):** Name of the preprocessing JSON file in the configs/ dir of the repository
-- **[optional] faulty_data_creation_config_filename (str):** Name of the faulty data creation JSON file in the configs/ dir of the repository. If nothing is provided, the data won't be manipulated.
+- **run_path (str):** Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
+- [optional] **create_faulty_data (bool):** Default = False. Select whether faulty data shall be created or not. No data modification will happen, if create_faulty_data == False.
 
 An example of how to use the class is directly provided at the end of the ./FTDDataset.py file in the [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset) repository.
 
@@ -32,14 +31,15 @@ root_dir:
     - timestampX.csv
 - labels.csv (csv with label information for each timestamp)
 - datasheet.md (this file)
+- std_mean_values.json (json file with mean and std values for z-score normalization of IMU data)
 # Details about dataset
 In this section you will find answers to several questions about FTDD. The questions are a subset of the questions proposed in the paper "Datasheets for Datasets" from T. Gebru et al. which can be found here: https://arxiv.org/pdf/1803.09010 \
 The purpose of this chapter is to hopefully answer all questions which could arise when using this dataset.
 ## Motivation
 ### **Q: For what purpose was the dataset created?**
-A: The dataset was created for the research thesis FA 3526 at the IAS Institute from University Stuttgart. The aim of the research thesis was to create a dataset for multi-modal machine learning for classifying different types of floor (e.g. tiles, parquet, ...) which a mobile robot ([Unitree Go1](https://www.unitree.com/en/go1/)) is moving on.
+A: The dataset was created for the master thesis MA 3606 at the IAS Institute from University Stuttgart. The aim of the research thesis was to create a dataset for multi-modal machine learning for classifying different types of floor (e.g. tiles, parquet, ...) which a mobile robot ([Unitree Go1](https://www.unitree.com/en/go1/)) is moving on.
 ### **Q: Who created the dataset and on behalf of which entity?** 
-A: The dataset was created by the student Dominik Eißen, supported by his supervisor Simon Kamm on behalf of University Stuttgart.
+A: The dataset was created by the student Dominik Eißen, supported by Peter Frank and his supervisor Simon Kamm on behalf of University Stuttgart.
 
 ## Composition
 ### **Q: What do the instances that comprise the dataset represent (e.g., documents, photos, people, countries)?** 
@@ -67,7 +67,7 @@ A: Each instance (one instance = data of all sensors and cameras for one timesta
 ### **Q: Is there a label or target associated with each instance?** 
 A:  Yes, the label-timestamp mapping can be found in the labels.csv file.
 ### **Q :Are there recommended data splits (e.g., training, development/validation, testing)?** 
-A: The recommended split is 90% for training and 10% for testing. If a separate validation set is wanted, this should be taken from training set. If possible, it's recommended to use data from different measurements which are not included in this dataset for testing
+A: Training, validation and test set are seperatly provided. This is necessary as taking a (random) subset of a dataset results in very similar data samples which leads to nearly identical metrics for test/ validation datset in comparison to the training dataset (see research thesis FA 3526 for details). 
 ### **Q: Is any information missing from individual instances?** 
 A: No. All instances/ timestamps contain the data of all sensors. In case there was data missing for a sensors for a timestamp, the timestamp was removed during data preparation step.
 ### **Q: Are relationships between individual instances made explicit (e.g., users’ movie ratings, social network links)?** 
@@ -89,22 +89,22 @@ A:  The data was collected using the ./main.py program of the repository [Unitre
 ### **Q: What mechanisms or procedures were used to collect the data (e.g., hardware apparatuses or sensors, manual human curation, software programs, software APIs)?** 
 A: The data was collected with the [Unitree Go1](https://www.unitree.com/en/go1/) robot dog which was controlled by the remote control by a human. \
 The data was collected using the ./main.py program of the repository [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu).
-- TODO Used version: [Version_1.0](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu/releases/tag/Version_1.0)
+- TODO Used version: [Version_2.0](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu/releases/tag/Version_2.0)
 
 Finally the data was prepared using the program ./data_preparation_main.py of the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset).
-- TODO Used version: [FTDD_1.0](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset/releases/tag/FTDD_1.0)
+- TODO Used version: [FTDD_2.0](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset/releases/tag/FTDD_2.0)
 ### **Q: If the dataset is a sample from a larger set, what was the sampling strategy (e.g., deterministic, probabilistic with specific sampling probabilities)?** 
 A:  The dataset is not a sample from a larger set.
 ### **Q: Who was involved in the data collection process (e.g., students, crowdworkers, contractors) and how were they compensated (e.g., how much were crowdworkers paid)?** 
 A: Master and PhD students were involved in the data collection process.
 ### **Q: Over what timeframe was the data collected?** 
-A: The data was collected over several measurements at the same day.
+A: The data was collected over several measurements at multiple days.
 
 ## Preprocessing/ cleaning/ labeling
 ### **Q: Was any preprocessing/ cleaning/ labeling of the data done (e.g., discretization or bucketing, tokenization, part-of-speech tagging, SIFT feature extraction, removal of instances, processing of missing values)?** 
 A: Yes, the data was prepared/ preprocessed by using the the program ./data_preparation_main.py of the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset). Steps done during data preparation:
 - Downsampling of timeseries data to 50 Hz signal (captured with ~100 Hz)
-- Z Score normalization of the downsampled timeseries data
+- [optional] Z Score normalization of the downsampled timeseries data
 - Window creation for timeseries measurements
 - Timestamp synchronization (assign data of all sensors to one instance by common timestamp based on time diff information between clocks of all included PC's)
 - Removal of instances where data of at least one sensor is missing for
@@ -116,7 +116,7 @@ A: Yes, the SW can be found in the repository [Floor-Type-Detection-Dataset](htt
 
 ## Uses
 ### **Q: Has the dataset been used for any tasks already?** 
-A: The dataset was used for the research Thesis FA 3526 at the IAS Institute from University Stuttgart.
+A: The dataset was used for the master thesis MA 3606 at the IAS Institute from University Stuttgart.
 ### **Q: What (other) tasks could the dataset be used for?** 
 A: There are no other tasks which the dataset could be used for directly, as no further information besides the floor type was stored for each measurement. Of course new labels could created for each instance manually based on what can be seen on the images (e.g. object detection, image segmentation, weather classification, ...). Still this is not recommended as it would need a lot of time to manually create the new labels. \
 *Note:* New data can be collected by using the SW available in the repository [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu) where new labels can be directly captured during the measurement with small modifications on the SW. This might be faster than creating new labels manually.

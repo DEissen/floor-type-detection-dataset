@@ -13,13 +13,16 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # custom imports
 if __name__ == "__main__":
-    from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
+    from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness, gaussian_noise, shot_noise, impulse_noise, speckle_noise, defocus_blur, glass_blur, motion_blur, zoom_blur, gaussian_blur, snow, frost, fog, spatter, brightness, contrast, saturate, jpeg_compression, pixelate
     from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
     from visualization.visualizeTimeseriesData import plot_IMU_data
+    from custom_utils.utils import load_json_from_configs
 else:
-    from FTDDataset.failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness
+    # else statement needed when FloorTypeDetectionDataset() class is used as submodule in other project
+    from FTDDataset.failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness, gaussian_noise, shot_noise, impulse_noise, speckle_noise, defocus_blur, glass_blur, motion_blur, zoom_blur, gaussian_blur, snow, frost, fog, spatter, brightness, contrast, saturate, jpeg_compression, pixelate
     from FTDDataset.failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
     from FTDDataset.visualization.visualizeTimeseriesData import plot_IMU_data
+    from FTDDataset.custom_utils.utils import load_json_from_configs
 
 # Ignore warnings
 import warnings  # nopep8
@@ -31,26 +34,36 @@ class FloorTypeDetectionDataset(Dataset):
         Dataset class for FTDD (Floor Type Detection Dataset).
     """
 
-    def __init__(self, root_dir, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename=""):
+    def __init__(self, root_dir, sensors, run_path, create_faulty_data=False):
         """
-            Constructor for FloorTypeDetectionDataset class.
+            Init method for FloorTypeDetectionDataset class.
 
             Parameters:
                 - root_dir (str): Path to dataset
                 - sensors (list): List of all sensors which shall be considered for this dataset
-                - mapping_filename (str): filename of the label mapping JSON file
-                - preprocessing_config_filename (str): Name of the preprocessing JSON file in the configs/ dir 
-                - faulty_data_creation_config_filename (str): Default = "". Name of the faulty data creation JSON file in the configs/ dir 
-                                                              If empty string is provided, no data modification will happen.
+                - run_path (str): Run path to previous run from where config can be loaded. 
+                                  If run_path == "" the default config from the repo will be used.
+                - create_faulty_data (bool): Default = False. Select whether faulty data shall be created or not.
+                                             No data modification will happen, if create_faulty_data == False.
         """
+        # names of the config files:
+        self.preprocessing_config_filename = "preprocessing_config.json"
+        self.faulty_data_creation_config_filename = "faulty_data_creation_config.json"
+        mapping_filename = "label_mapping.json"
+
+        # take of of function parameters
         self.root_dir = root_dir
         self.sensors = sensors
-        self.preprocessing_config_filename = preprocessing_config_filename
-        self.faulty_data_creation_config_filename = faulty_data_creation_config_filename
+        self.run_path = run_path
+        self.create_faulty_data = create_faulty_data
+        self.faulty_data_creation_config_dict = {}
+
+        # get transformations for data based on configuration
         self.transform = self.__get_composed_transforms()
 
         # get data for preprocessing and label mapping from configs/ dir
-        self.label_mapping_dict = load_json_from_configs(mapping_filename)
+        self.label_mapping_dict = load_json_from_configs(
+            run_path, mapping_filename)
 
         # get list of all files from labels
         self.filenames_labels_array = pd.read_csv(os.path.join(
@@ -67,24 +80,43 @@ class FloorTypeDetectionDataset(Dataset):
         transformations_list = []
 
         # ## Creating faulty data according to fault config before image preprocessing, if fault config was provided
-        if self.faulty_data_creation_config_filename != "":
+        if self.create_faulty_data:
             # only add class for faulty data creation if a path was added
-            transformations_list.append(FTDD_CreateFaultyData(
-                self.faulty_data_creation_config_filename))
+            transformations_list.append(FTDD_CreateFaultyData(self.run_path,
+                                                              self.faulty_data_creation_config_filename))
+
+            # save faulty data creation config dict for logging if it was provided
+            self.faulty_data_creation_config_dict = transformations_list[0].get_config_dict(
+            )
+
+            # print info to user in case computation intensive version is selected
+            if (self.faulty_data_creation_config_dict["images"]["Cams for glass_blur"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for motion_blur"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for zoom_blur"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for snow"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for frost"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for fog"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for new brightness"] != [""] or
+                    self.faulty_data_creation_config_dict["images"]["Cams for saturate"] != [""]):
+                print("\n!!!! Training/ Evaluation might be significantly longer than usual due to selection of computation intensive failure case creation "
+                      "(glass_blur, motion_blur, zoom_blur, snow, frost, fog, new brightness or saturate) !!!!\n")
 
         # ## Image preprocessing
-        transformations_list.append(
-            FTDD_Crop(self.preprocessing_config_filename))
-        transformations_list.append(FTDD_Rescale(
-            self.preprocessing_config_filename))
-        transformations_list.append(FTDD_Normalize(
-            self.preprocessing_config_filename))
+        # TODO: make crop and rescale configurable or detect automatically whether it is needed!
+        # ## Crop and Rescale is obsolete here as it is already done in the dataset!
+        # transformations_list.append(
+        #     FTDD_Crop(self.preprocessing_config_filename))
+        transformations_list.append(FTDD_Rescale(self.run_path,
+                                                 self.preprocessing_config_filename))
+        transformations_list.append(FTDD_Normalize(self.run_path,
+                                                   self.preprocessing_config_filename, self.root_dir))
 
         # ## Transform PIL images and numpy arrays to torch Tensors as final step
         transformations_list.append(FTDD_ToTensor())
 
-        # save preprocessing config dict for logging from first transform
-        self.preprocessing_config_dict = transformations_list[0].get_config_dict()
+        # save preprocessing config dict for logging from first transform (transform at position 1 will be either rescale or normalize with preprocessing config)
+        self.preprocessing_config_dict = transformations_list[1].get_config_dict(
+        )
 
         return transforms.Compose(transformations_list)
 
@@ -135,9 +167,18 @@ class FloorTypeDetectionDataset(Dataset):
             Getter method to get loaded self.config_dict.
 
             Returns:
-                - self.config_dict (dict): Dict containing config for preprocessing/ transforms
+                - self.preprocessing_config_dict (dict): Dict containing config for preprocessing/ transforms
         """
         return self.preprocessing_config_dict
+
+    def get_faulty_data_creation_config(self):
+        """
+            Getter method to get loaded self.config_dict.
+
+            Returns:
+                - self.faulty_data_creation_config_dict (dict): Dict containing config for faulty data creation
+        """
+        return self.faulty_data_creation_config_dict
 
     def __len__(self):
         """
@@ -149,39 +190,21 @@ class FloorTypeDetectionDataset(Dataset):
         return np.shape(self.filenames_labels_array)[0]
 
 
-def load_json_from_configs(json_filename):
-    """
-        Helper function to load any JSON file from the configs/ dir of the repo.
-
-        Parameters:
-            - json_filename (str): Name of the JSON file in the configs/ dir
-
-        Returns:
-            - json_as_dict (dict): Dict containing the data from the file json_filename
-    """
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(file_dir, "configs", json_filename)
-
-    with open(json_path, "r") as f:
-        json_as_dict = json.load(f)
-
-    return json_as_dict
-
-
 class FTDD_Transform_Superclass():
     """
         Superclass for all transform classes for FTDD. Provides __init__() method to load config.
     """
 
-    def __init__(self, config_filename):
+    def __init__(self, run_path, config_filename):
         """
-            Constructor for FTDD_Crop class.
+            Init method for FTDD_Transform_Superclass class.
 
             Parameters:
+                - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
                 - config_filename (str): Name of the config JSON file in the configs/ dir
         """
-        self.config_dict = load_json_from_configs(
-            config_filename)
+        self.config_dict = load_json_from_configs(run_path,
+                                                  config_filename)
 
     def get_config_dict(self):
         """
@@ -242,7 +265,59 @@ class FTDD_CreateFaultyData(FTDD_Transform_Superclass):
         elif sensor_name in self.config_dict['images']["Cams for sharpness"]:
             image = change_sharpness(
                 image, self.config_dict["images"]["sharpness_min"], self.config_dict["images"]["sharpness_max"])
-
+        elif sensor_name in self.config_dict["images"]["Cams for guassian_noise"]:
+            image = gaussian_noise(
+                image, self.config_dict["images"]["noise intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for shot_noise"]:
+            image = shot_noise(
+                image, self.config_dict["images"]["noise intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for impulse_noise"]:
+            image = impulse_noise(
+                image, self.config_dict["images"]["noise intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for speckle_noise"]:
+            image = speckle_noise(
+                image, self.config_dict["images"]["noise intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for defocus_blur"]:
+            image = defocus_blur(
+                image, self.config_dict["images"]["blur intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for glass_blur"]:
+            image = glass_blur(
+                image, self.config_dict["images"]["blur intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for motion_blur"]:
+            image = motion_blur(
+                image, self.config_dict["images"]["blur intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for zoom_blur"]:
+            image = zoom_blur(
+                image, self.config_dict["images"]["blur intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for gaussian_blur"]:
+            image = gaussian_blur(
+                image, self.config_dict["images"]["blur intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for snow"]:
+            image = snow(
+                image, self.config_dict["images"]["weather intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for frost"]:
+            image = frost(
+                image, self.config_dict["images"]["weather intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for fog"]:
+            image = fog(image, self.config_dict["images"]["weather intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for spatter"]:
+            image = spatter(
+                image, self.config_dict["images"]["weather intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for new brightness"]:
+            image = brightness(
+                image, self.config_dict["images"]["digital intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for new contrast"]:
+            image = contrast(
+                image, self.config_dict["images"]["digital intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for saturate"]:
+            image = saturate(
+                image, self.config_dict["images"]["digital intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for jpeg_compression"]:
+            image = jpeg_compression(
+                image, self.config_dict["images"]["digital intensity"])
+        elif sensor_name in self.config_dict["images"]["Cams for pixelate"]:
+            image = pixelate(
+                image, self.config_dict["images"]["digital intensity"])
         return image
 
     def __handle_timeseries_data__(self, data, sensor_name):
@@ -438,6 +513,41 @@ class FTDD_ToTensor():
 
 
 class FTDD_Normalize(FTDD_Transform_Superclass):
+    """
+        Class to normalize images and timeseries data for preprocessing of FTDD. Child of FTDD_Transform_Superclass, where __init__() method is relevant.
+    """
+
+    def __init__(self, run_path, config_filename, dataset_path):
+        """
+            Init method for FTDD_Normalize class.
+
+            Parameters:
+                - run_path (str): Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
+                - config_filename (str): Name of the config JSON file in the configs/ dir
+                - dataset_path (str): Path to dataset
+        """
+        super().__init__(run_path, config_filename)
+
+        self.timeseries_normalization_dict = self.__get_timeseries_normalization_dict(
+            dataset_path)
+
+    def __get_timeseries_normalization_dict(self, dataset_path):
+        """
+            Private method to load timeseries data normalization dict from dataset.
+
+            Parameters:
+                - dataset_path (str): Path to dataset
+
+            Returns:
+                - mean_std_dict (dict): Dict containing values for normalization for all sensors from dataset
+        """
+        json_path = os.path.join(dataset_path, "std_mean_values.json")
+
+        with open(json_path, "r") as f:
+            mean_std_dict = json.load(f)
+
+        return mean_std_dict
+
     def __call__(self, data_dict: dict):
         """
             Method to normalize all images data_dict by dividing through 255 and converts PIL image to np.array.
@@ -455,7 +565,16 @@ class FTDD_Normalize(FTDD_Transform_Superclass):
                     data_dict[sensor_name] = np.array(
                         data_dict[sensor_name], dtype=np.float32) / 255
             else:
-                pass  # IMU data is already normalized during data preparation
+                if self.config_dict["normalize_timeseries_data"]:
+                    # get data, mean and std for sensor
+                    data = data_dict[sensor_name]
+                    mean = self.timeseries_normalization_dict[sensor_name]["mean"]
+                    std = self.timeseries_normalization_dict[sensor_name]["std"]
+
+                    # perform z-score normalization
+                    normalized_data = (data - mean) / std
+
+                    data_dict[sensor_name] = normalized_data
 
         return data_dict
 
@@ -465,21 +584,18 @@ if __name__ == "__main__":
         This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
     """
     # variables for dataset and config to use
-    dataset_path = r"C:\Users\Dominik\Downloads\FTDD_0.1"
-    mapping_filename = "label_mapping_binary.json"
-    preprocessing_config_filename = "preprocessing_config.json"
-    faulty_data_creation_config_filename = "faulty_data_creation_config.json"
+    dataset_path = r"D:\MA_Daten\FTDD1.6\test"
 
     # list of sensors to use
-    sensors = ["accelerometer", "BellyCamRight"]
+    sensors = ["BellyCamRight"]
     # sensors = ["accelerometer", "BellyCamRight", "BellyCamLeft", "ChinCamLeft",
     #            "ChinCamRight", "HeadCamLeft", "HeadCamRight", "LeftCamLeft", "LeftCamRight", "RightCamLeft", "RightCamRight"]
 
     # create dataset
     transformed_dataset = FloorTypeDetectionDataset(
-        dataset_path, sensors, mapping_filename, preprocessing_config_filename)
+        dataset_path, sensors, run_path="")
     faulty_dataset = FloorTypeDetectionDataset(
-        dataset_path, sensors, mapping_filename, preprocessing_config_filename, faulty_data_creation_config_filename)
+        dataset_path, sensors, run_path="", create_faulty_data=True)
 
     # train_size = int(0.8 * len(transformed_dataset))
     # test_size = len(transformed_dataset) - train_size

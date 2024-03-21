@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 from datetime import datetime, timedelta
+import logging
 
 # differentiation needed to support execution of file directly and to allow function to be included by data_preparation_main.py
 if __name__ == "__main__":
@@ -57,14 +58,14 @@ class TimeseriesDownsamplingForWholeMeasurement():
             raise Exception(
                 f"No timeseries sensor found for measurement '{self.measurement_path}'")
         else:
-            print(
+            logging.info(
                 f"downsampling will be done for the following sensors: {self.timeseries_sensors}")
 
         # execute downsampling for all files
         for root, dirs, files in os.walk(os.path.join(self.measurement_path, self.timeseries_sensors[0])):
             files.sort()
             for file in files:
-                print(f"\nStart downsampling for file '{file}'")
+                logging.info(f"\nStart downsampling for file '{file}'")
                 self.__start_downsampling_for_all_sensors_by_filename(file)
 
     def __start_downsampling_for_all_sensors_by_filename(self, filename):
@@ -110,7 +111,7 @@ class TimeseriesDownsamplingForWholeMeasurement():
                     self.measurement_path, sensor, filename), delimiter=';')
                 self.data_dict[sensor] = self.downsampling_array
                 sensor_for_downsampling_found = True
-                print(
+                logging.info(
                     f"Using '{sensor}' for downsampling of file '{filename}'")
             else:
                 self.data_dict[sensor] = np.genfromtxt(os.path.join(
@@ -159,8 +160,8 @@ class TimeseriesDownsamplingForWholeMeasurement():
                     max_occurrences = num_subsequent_occurrences
 
         # print info about max occurrences for plausibility check of downsampling
-        print(f"Max occurrence of single value was '{max_occurrences}'")
-        print(
+        logging.info(f"Max occurrence of single value was '{max_occurrences}'")
+        logging.info(
             f"Amount of odd occurrences is {self.odd_counter} which corresponds to {(self.odd_counter*100)/(self.odd_counter+self.even_counter):.2f} %")
 
     def __count_subsequent_occurrences(self, array_length, current_index, value_to_check):
@@ -279,7 +280,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
             f"The needed shift of {shift} is not within the earliest measurement. Thus execution will be aborted.")
     elif shift > 0:
         # drop obsolete data when mandatory
-        print(
+        logging.info(
             f"Obsolete data for sensor '{sensor_name}' will be removed (first {shift} data points will be removed).")
         data = data[shift:]
 
@@ -290,7 +291,7 @@ def remove_obsolete_values(measurement_path, sensor_name, reference_timestamp):
         # delete old file
         os.remove(os.path.join(measurement_path, sensor_name, first_filename))
     else:
-        print(f"No update needed for sensor '{sensor_name}'")
+        logging.info(f"No update needed for sensor '{sensor_name}'")
 
 
 def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, sensor_name, window_size, normalization=False):
@@ -335,7 +336,7 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
                                axis=0)) / np.std(raw_data, axis=0)
         else:
             normalized_data = raw_data
-            print(
+            logging.info(
                 f"No normalization was done for {sensor_name} as this would result in NaN values!")
     else:
         normalized_data = raw_data
@@ -355,9 +356,10 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
             break
 
         # calculate timestamp for window
-        # window has timestamp of the last value in the window 
-        # => current window starts at i after earliest timestamp and last value is window_size afterwards 
-        new_timestamp = earliest_timestamp + timedelta(milliseconds=(window_size + i)*20)
+        # window has timestamp of the last value in the window
+        # => current window starts at i after earliest timestamp and last value is window_size afterwards
+        new_timestamp = earliest_timestamp + \
+            timedelta(milliseconds=(window_size + i)*20)
 
         # save new window
         new_filename = os.path.join(measurement_path, sensor_name, datetime.strftime(
@@ -365,7 +367,7 @@ def create_sliding_windows_and_save_them(measurement_path, earliest_timestamp, s
         np.savetxt(new_filename, window, delimiter=";")
 
 
-def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False):
+def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False, load_from_sliding_window=False):
     """
         Function to load a complete IMU measurement for sensor from measurement_path in one array.
         In case the IMU dir contains more than 60 files, only the first part of the data of each file is taken,
@@ -375,6 +377,7 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
             - measurement_path (str): Path to the measurement
             - sensor (str): Name of the sensor to load the data for
             - delete_source (bool): If True, the files will be deleted after data was loaded (default = False)
+            - load_from_sliding_window (bool): If True, the only the first 10 data points will be taken to not load double data from sliding windows (default = False)
 
         Returns:
             - (np.array) Numpy array with data for sensor
@@ -385,12 +388,15 @@ def load_complete_IMU_measurement(measurement_path, sensor, delete_source=False)
 
     data_list = []
     for file in filename_list:
-        if len(filename_list) < 60:
+        if load_from_sliding_window:
+            # for many files in the dir the preparing was most likely already done, thus only part of data is needed
+            try:
+                data_list.extend(np.genfromtxt(file, delimiter=';')[:10, :])
+            except IndexError:
+                data_list.extend(np.genfromtxt(file, delimiter=';')[:10]) # happens in case data has only one channel (e.g. bodyHeight)
+        else:
             # for short file list the whole file can be taken
             data_list.extend(np.genfromtxt(file, delimiter=';'))
-        else:
-            # for many files in the dir the preparing was most likely already done, thus only part of data is needed
-            data_list.extend(np.genfromtxt(file, delimiter=';')[:10,:])
         if delete_source:
             os.remove(file)
 
