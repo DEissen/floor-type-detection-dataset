@@ -148,6 +148,7 @@ def update_labels_csv(dataset_path, incomplete_samples_set):
     prev_length = np.shape(sample_label_mapping)[0]
 
     # remove samples from incomplete_samples_list
+    new_length = None
     for incomplete_sample in incomplete_samples_set:
         sample_label_mapping = sample_label_mapping[np.where(
             sample_label_mapping[:, 0] != incomplete_sample)]
