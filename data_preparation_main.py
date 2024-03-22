@@ -265,7 +265,7 @@ if __name__ == "__main__":
     corrupted_files_list = get_list_of_corrupt_IMU_files(final_dataset_path)
     print(
         f"There are {len(corrupted_files_list)} corrupted IMU files which will be deleted now.")
-    print(corrupted_files_list)
+
     delete_incomplete_data_samples(final_dataset_path, corrupted_files_list)
     num_data_samples = update_labels_csv(final_dataset_path, corrupted_files_list)
 
