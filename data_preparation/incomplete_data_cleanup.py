@@ -3,6 +3,7 @@ from os import path
 import os
 import pandas as pd
 import numpy as np
+import gin
 
 
 def get_incomplete_data_samples(dataset_path):
@@ -54,6 +55,48 @@ def get_incomplete_data_samples(dataset_path):
     return incomplete_samples_set, complete_incomplete_samples_list
 
 
+@gin.configurable
+def get_list_of_corrupt_IMU_files(dataset_path, corrupt_threshold):
+    """
+        Function to get the list of IMU files which contain the same value for at least corrupt_threshold times.
+
+        Parameters:
+            - dataset_path (str): Path to the dataset which shall be checked
+            - corrupt_threshold (int): Threshold for selection criteria to classify corrupted files
+
+        Returns:
+            - corrupt_files_list (list): List of filenames (without type extension) which are corrupt
+    """
+    # determine first IMU sensor (all have the same corrupted data due to parallel measurement from the same data source)
+    IMU_sensor = None
+    for root, dirs, files in os.walk(dataset_path):
+        for sensor in dirs:
+            if not "Cam" in sensor:
+                IMU_sensor = sensor
+                break
+        break
+
+    # load array with filenames from dataset
+    filenames_array = pd.read_csv(os.path.join(
+        dataset_path, "labels.csv"), sep=";", header=0).to_numpy()[:, 0]
+
+    corrupt_files_list = []
+
+    for index, filename in enumerate(filenames_array):
+        file_path = os.path.join(
+            dataset_path, IMU_sensor, filename+".csv")
+        data = np.loadtxt(file_path, delimiter=";")
+
+        # get counts of unique elements to determine max occurrence within file
+        unique, counts = np.unique(data, return_counts=True)
+        max_occurrence = max(counts)
+
+        if max_occurrence > corrupt_threshold:
+            corrupt_files_list.append(filename)
+
+    return corrupt_files_list
+
+
 def delete_incomplete_data_samples(dataset_path, incomplete_samples_set):
     """
         Function to delete all incomplete data samples (where not all data for each sensors is present from) based on provided incomplete_samples_set.
@@ -94,6 +137,9 @@ def update_labels_csv(dataset_path, incomplete_samples_set):
         Parameters:
             - dataset_path (str): Path to the dataset
             - incomplete_samples_set (set): Set containing all timestamp strings for which at least one sensors does not provide data
+
+        Returns:
+            - new_length (int): Length of the new labels file 
     """
     # load current labels list
     sample_label_mapping = pd.read_csv(os.path.join(
@@ -116,6 +162,8 @@ def update_labels_csv(dataset_path, incomplete_samples_set):
     # save modified version
     np.savetxt(os.path.join(dataset_path, "labels.csv"),
                sample_label_mapping, delimiter=";", header="timestamp;label", fmt="%s")
+
+    return new_length
 
 
 if __name__ == "__main__":

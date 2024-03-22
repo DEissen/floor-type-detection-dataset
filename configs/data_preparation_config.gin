@@ -4,3 +4,4 @@ data_preparation_main.normalize_IMU_data_measurement_based = False
 data_preparation_main.preprocess_IMU_data_dataset_based = False
 data_preparation_main.preprocess_images = True
 data_preparation_main.resize_images = True
+get_list_of_corrupt_IMU_files.corrupt_threshold = 30

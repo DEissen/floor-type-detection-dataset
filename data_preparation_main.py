@@ -10,7 +10,7 @@ from custom_utils.utils import copy_measurement_to_temp, clean_temp_dir, copy_pr
 from data_preparation.timestamp_evaluation import get_synchronized_timestamps, remove_obsolete_data_at_end, create_label_csv, get_earliest_timestamp_from_IMU, get_data_from_info_json_for_timestamp_evaluation
 from data_preparation.timeseries_preparation import TimeseriesDownsamplingForWholeMeasurement, remove_obsolete_values, load_complete_IMU_measurement, create_sliding_windows_and_save_them
 from data_preparation.image_preparation import remove_obsolete_images_at_beginning, unify_image_timestamps
-from data_preparation.incomplete_data_cleanup import get_incomplete_data_samples, delete_incomplete_data_samples, update_labels_csv
+from data_preparation.incomplete_data_cleanup import get_incomplete_data_samples, delete_incomplete_data_samples, update_labels_csv, get_list_of_corrupt_IMU_files
 from data_preparation.measurement_combination import combine_measurements_to_dataset
 from visualization.visualizeTimeseriesData import plot_IMU_data
 from visualization.visualizeImages import show_all_images_afterwards, show_all_images_afterwards_including_imu_data
@@ -119,7 +119,8 @@ def data_preparation_main(measurement_path, temp_path=None, dataset_path=None, w
     logging.info(
         "\n\n### Step 8: Perform preprocessing for all data samples ###")
     config_path = "preprocessing_config.json"
-    config_dict = load_json_from_configs(run_path="", json_filename=config_path)
+    config_dict = load_json_from_configs(
+        run_path="", json_filename=config_path)
     data_preprocessing_main(
         temp_path, config_dict, preprocess_images, preprocess_IMU_data_dataset_based, resize_images)
 
@@ -156,8 +157,10 @@ def visualize_result(imu_offset=0, temp_path=None):
         temp_path = os.path.join(file_dir, "temp")
 
     # determines which sensor is used for visualization
-    data = load_complete_IMU_measurement(temp_path, "accelerometer", load_from_sliding_window=True)
+    data = load_complete_IMU_measurement(
+        temp_path, "accelerometer", load_from_sliding_window=True)
     show_all_images_afterwards_including_imu_data(temp_path, data, imu_offset)
+
 
 def calculate_std_and_mean_for_timeseries_sensor(dataset_path, sensor):
     """
@@ -173,12 +176,14 @@ def calculate_std_and_mean_for_timeseries_sensor(dataset_path, sensor):
     print(f"Determine std and mean for {sensor}")
 
     res = {}
-    data_from_sliding_window = load_complete_IMU_measurement(dataset_path, sensor, load_from_sliding_window=True)
-    
-    res["mean"] =  np.mean(data_from_sliding_window, axis=0).tolist()
+    data_from_sliding_window = load_complete_IMU_measurement(
+        dataset_path, sensor, load_from_sliding_window=True)
+
+    res["mean"] = np.mean(data_from_sliding_window, axis=0).tolist()
     res["std"] = np.std(data_from_sliding_window, axis=0).tolist()
 
     return res
+
 
 def determine_and_store_all_std_and_mean_for_dataset(dataset_path):
     """
@@ -190,14 +195,14 @@ def determine_and_store_all_std_and_mean_for_dataset(dataset_path):
     std_mean_dict = {}
 
     print("Start determining std and mean values for all timeseries sensors.")
-    
+
     # get std and mean for all time series sensors
     for root, dirs, files in os.walk(dataset_path):
         for dir in dirs:
             if not "Cam" in dir:
-                std_mean_dict[dir] = calculate_std_and_mean_for_timeseries_sensor(dataset_path, dir)
+                std_mean_dict[dir] = calculate_std_and_mean_for_timeseries_sensor(
+                    dataset_path, dir)
 
-        
         # break after first for loop to only explore the top level of measurement_base_path
         break
 
@@ -206,8 +211,9 @@ def determine_and_store_all_std_and_mean_for_dataset(dataset_path):
 
     with open(json_filename, "w") as fp:
         json.dump(std_mean_dict, fp, indent=3)
-    
+
     print(f"Stored result in file {json_filename}")
+
 
 if __name__ == "__main__":
     # get and use gin config
@@ -254,5 +260,15 @@ if __name__ == "__main__":
 
     # combine measurements to dataset at the end
     combine_measurements_to_dataset(result_dir, final_dataset_path)
+
+    print("Start classification of corrupted IMU data samples")
+    corrupted_files_list = get_list_of_corrupt_IMU_files(final_dataset_path)
+    print(
+        f"There are {len(corrupted_files_list)} corrupted IMU files which will be deleted now.")
+    print(corrupted_files_list)
+    delete_incomplete_data_samples(final_dataset_path, corrupted_files_list)
+    num_data_samples = update_labels_csv(final_dataset_path, corrupted_files_list)
+
+    print(f"Total instances in the dataset after removal of corrupt data: {num_data_samples}")
 
     determine_and_store_all_std_and_mean_for_dataset(final_dataset_path)
