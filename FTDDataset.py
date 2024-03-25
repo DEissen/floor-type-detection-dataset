@@ -102,7 +102,7 @@ class FloorTypeDetectionDataset(Dataset):
                       "(glass_blur, motion_blur, zoom_blur, snow, frost, fog, new brightness or saturate) !!!!\n")
 
         # ## Image preprocessing
-        # TODO: make crop and rescale configurable or detect automatically whether it is needed!
+        # TODO [Improvement suggestion]: make crop and rescale configurable or detect automatically whether it is needed!
         # ## Crop and Rescale is obsolete here as it is already done in the dataset!
         # transformations_list.append(
         #     FTDD_Crop(self.preprocessing_config_filename))

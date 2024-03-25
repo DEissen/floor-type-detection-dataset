@@ -214,7 +214,7 @@ def rename_image_timestamps_for_single_camera(measurement_path, camera_name, sta
     # print(
     #     f"Images for camera '{camera_name}' are now renamed starting at timestamp {get_timestamp_string_from_timestamp(starting_timestamp)}")
     if list_missing_timestamp_strings != []:
-        # TODO: maybe do something more with it than only logging (not needed yet as only obsolete images were missing in tests!
+        # TODO [Improvement suggestion]: maybe do something more with it than only logging (not needed yet as only obsolete images were missing in tests!
         print(
             f"The following timestamps are missing for camera {camera_name}: {list_missing_timestamp_strings}")
 

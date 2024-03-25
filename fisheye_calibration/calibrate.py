@@ -5,7 +5,7 @@ import cv2
 assert cv2.__version__[
     0] >= '3', 'The fisheye module requires opencv version >= 3.0.0'
 
-# TODO Add docstring and refactor code in case this should be implemented => currently only test code!
+# NOTE: currently only test code!
 
 CHECKERBOARD = (6, 9)
 
