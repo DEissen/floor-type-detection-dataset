@@ -14,14 +14,14 @@ This section explains how to use the code in this repo for creating a dataset us
 #### Solution to create a single dataset from multiple measurements (currently 'active' at lines 227 - 258 in *data_preparation_main.py*)
 1. Change variable "measurement_base_path" in *data_preparation_main.py* to the location of the measurements for which data preparation shall be done (is **not** allowed to contain zip files!)
 2. Change variable "final_dataset_path" in *data_preparation_main.py* to the location where the final dataset shall be stored
-3. [Optional] Change config for data preparation in *configs/data_preparation_config.gin*
+3. [Optional] Change config for data preparation in *configs/data_preparation_config.gin* (general config parameters) and *configs/preprocessing_config.json* (details for image preprocessing like where images are cropped, ...)
 4. Execute program *data_preparation_main.py* and wait till it finished
     - *NOTE:* Do **not** uncomment the call of function visualize_result() in line 141 which will show a plot for each timestamp after data preparation finished, as this will not work properly in this setup!
 5. Update all locations with "TODO" in *datasheet.md* in your dataset location after execution of *data_preparation_main.py* is finished
     - *NOTE:* In the Terminal you will get the information about the number of total instances in the dataset and which measurements are included in the dataset which can be copied
 #### Measurement based solution (currently commented out at lines 220 - 225 in *data_preparation_main.py*)
 1. Change variable "measurement_path" in *data_preparation_main.py* to the location of the measurement for which data preparation shall be done (can be a normal directory or a zip file)
-2. [Optional] Change config for data preparation in *configs/data_preparation_config.gin*
+2. [Optional] Change config for data preparation in *configs/data_preparation_config.gin* (general config parameters) and *configs/preprocessing_config.json* (details for image preprocessing like where images are cropped, ...)
 3. Execute program *data_preparation_main.py* and wait till it finished
     - *NOTE:* If you want to have a look at the results, you can uncomment the call of function visualize_result() in line 141 which will show a plot for each timestamp after data preparation finished => If you don't want to have a look at all images, you can abort the execution with Ctrl + c in the command line
 4. Copy results from newly created **results/** dir to a new location for your dataset
@@ -53,7 +53,7 @@ This directory contains all config files for data preparation and dataset creati
     - *data_preparation_config.gin:* Config file for data preparation
     - *faulty_data_creation_config.json:* Config file for failure case creation
     - *label_mapping.json:* Mapping of label name to integer value when complete dataset is used
-    - *preprocessing_config.json:* Config file for the data preprocessing, e.g. image cropping and resizing
+    - *preprocessing_config.json:* Config file for the data preprocessing, e.g. image cropping and resizing used in data preparation and when dataset is used by FloorTypeDetectionDataset() class
 - **custom_utils/** \
 This module contains some custom utility functions used in the repository.
     - *utils.py:* Utility functions to handle data (copy data and clear temporary directories)
