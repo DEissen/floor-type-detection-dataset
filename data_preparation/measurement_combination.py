@@ -84,8 +84,8 @@ def get_labels_timestamp_mapping(measurement_path):
 
 
 if __name__ == "__main__":
-    prepared_measurements_base_path = r"D:\git_repos\MA_Dataset\results"
-    dataset_path = r"C:\Users\Dominik\Downloads\test_combination\FTDD_2.0_test"
+    prepared_measurements_base_path = r"update_with_path_to_prepared_datasets"
+    dataset_path = r"update_with_path_to_new_datasets"
 
     combine_measurements_to_dataset(
         prepared_measurements_base_path, dataset_path)

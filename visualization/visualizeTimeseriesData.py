@@ -56,7 +56,7 @@ def plot_IMU_data(data, sensor_name, labels=None, start_of_plot=None, end_of_plo
 
 
 if __name__ == "__main__":
-    # measurement_path = r"D:\git_repos\FA_Dataset\temp"
+    # measurement_path = r"update_with_path_to_measurement"
     # # different measurements names to copy: accelerometer, bodyHeight, footForce, footRaiseHeight, gyroscope, mode, rpy, temperature, velocity, yawSpeed
     # sensor = "accelerometer"
     # filename1 = "15_03_16_158"

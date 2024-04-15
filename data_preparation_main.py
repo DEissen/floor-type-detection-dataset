@@ -224,15 +224,11 @@ if __name__ == "__main__":
 
     # ######### measurement based solution
     # # measurement_path = "./testdata/measurement_25_07__15_03"
-    # # FTDD_1 measruements: measurement_29_08__09_01, measurement_29_08__09_20, measurement_29_08__09_26, measurement_29_08__09_32, measurement_29_08__09_38,
-    # #                      measurement_29_08__09_42, measurement_29_08__10_11, measurement_29_08__10_15
-    # measurement_path = r"D:\MA_Daten\FTDD2.0_raw\training_data\measurement_17_01__10_43"
-
     # data_preparation_main(measurement_path)
 
     # ######## create dataset from multiple measurements
-    measurement_base_path = r"C:\Users\Dominik\Downloads\test_data"
-    final_dataset_path = r"C:\Users\Dominik\Downloads\test_combination\FTDD_2.0_test"
+    measurement_base_path = r"/home/simon/Go1/_FTDDataset_RawData"
+    final_dataset_path = r"/home/simon/Go1/_FTDDataset_RawData/FTDD_2.0_new"
     file_dir = os.path.dirname(os.path.abspath(__file__))
     result_dir = os.path.join(file_dir, "results")
 

@@ -584,7 +584,7 @@ if __name__ == "__main__":
         This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
     """
     # variables for dataset and config to use
-    dataset_path = r"D:\MA_Daten\FTDD1.6\test"
+    dataset_path = r"/home/simon/Go1/FTDD2.0/test"
 
     # list of sensors to use
     sensors = ["BellyCamRight"]

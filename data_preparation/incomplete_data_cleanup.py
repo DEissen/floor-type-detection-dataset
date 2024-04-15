@@ -169,7 +169,7 @@ def update_labels_csv(dataset_path, incomplete_samples_set):
 
 if __name__ == "__main__":
     pass
-    # dataset_path = r"C:\Users\Dominik\Downloads\FTDD_1.0"
+    # dataset_path = r"/home/simon/Go1/FTDD_1.0"
     # incomplete_samples_list, _ = get_incomplete_data_samples(dataset_path)
 
     # delete_incomplete_data_samples(dataset_path, incomplete_samples_list)

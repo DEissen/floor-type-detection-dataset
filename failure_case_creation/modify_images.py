@@ -460,7 +460,7 @@ def pixelate(x, severity=1):
 
 
 if __name__ == "__main__":
-    path = r"D:\MA_Daten\FTDD1.5_preprocessed\FTDD_2.0_train\HeadCamLeft\10_49_15_029.jpg"
+    path = r"/home/simon/Go1/FTDD2.0/train/HeadCamLeft/10_49_15_029.jpg"
     img = Image.open(path)
 
     # img.show()
