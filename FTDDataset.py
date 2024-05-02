@@ -15,13 +15,11 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 if __name__ == "__main__":
     from failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness, gaussian_noise, shot_noise, impulse_noise, speckle_noise, defocus_blur, glass_blur, motion_blur, zoom_blur, gaussian_blur, snow, frost, fog, spatter, brightness, contrast, saturate, jpeg_compression, pixelate
     from failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
-    from visualization.visualizeTimeseriesData import plot_IMU_data
     from custom_utils.utils import load_json_from_configs
 else:
     # else statement needed when FloorTypeDetectionDataset() class is used as submodule in other project
     from FTDDataset.failure_case_creation.modify_images import change_brightness, change_contrast, change_sharpness, gaussian_noise, shot_noise, impulse_noise, speckle_noise, defocus_blur, glass_blur, motion_blur, zoom_blur, gaussian_blur, snow, frost, fog, spatter, brightness, contrast, saturate, jpeg_compression, pixelate
     from FTDDataset.failure_case_creation.modify_timeseries import offset_failure, precision_degradation, total_failure, drifting_failure
-    from FTDDataset.visualization.visualizeTimeseriesData import plot_IMU_data
     from FTDDataset.custom_utils.utils import load_json_from_configs
 
 # Ignore warnings
@@ -584,7 +582,7 @@ if __name__ == "__main__":
         This main contains a template of how to use the FloorTypeDetectionDataset() including data preprocessing.
     """
     # variables for dataset and config to use
-    dataset_path = r"/home/simon/Go1/FTDD2.0/test"
+    dataset_path = r"TODO"
 
     # list of sensors to use
     sensors = ["BellyCamRight"]
@@ -596,11 +594,6 @@ if __name__ == "__main__":
         dataset_path, sensors, run_path="")
     faulty_dataset = FloorTypeDetectionDataset(
         dataset_path, sensors, run_path="", create_faulty_data=True)
-
-    # train_size = int(0.8 * len(transformed_dataset))
-    # test_size = len(transformed_dataset) - train_size
-    # train_dataset, test_dataset = torch.utils.data.random_split(
-    #     transformed_dataset, [train_size, test_size])
 
     # loop for testing
     for index, (sample, label) in enumerate(transformed_dataset):
@@ -617,8 +610,8 @@ if __name__ == "__main__":
                     plt.show()
                 if "Cam" in sensor:
                     image = sample[sensor]
-                    # plt.imshow(image.permute(1, 2, 0))
-                    # plt.show()
+                    plt.imshow(image.permute(1, 2, 0))
+                    plt.show()
 
                     # print same image of faulty dataset
                     (sample, label) = faulty_dataset.__getitem__(index)
@@ -627,7 +620,6 @@ if __name__ == "__main__":
                     plt.show()
                     break
                 else:
-                    # plot_IMU_data(sample[sensor], sensor)
                     pass
             break
 
