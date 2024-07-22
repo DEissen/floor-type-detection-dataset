@@ -3,7 +3,9 @@ Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded wit
 1. Data preparation: Prepare raw measurement data to be easily loadable by a custom PyTorch dataset class (including unification of timestamps, window creation for timeseries data, ...)
 2. Dataset creation: Create a PyTorch dataset with configurable data preprocessing (image cropping, ...) data selection (usage of subset of sensors possible) and failure case creation (by modifying the data)
 
-For more details about how to create a dataset see the following chapters. 
+**If you are only interested in using the FTD Dataset, checkout the branch [release/light-version](https://github.com/DEissen/floor-type-detection-dataset/tree/release/light-version), which does not contain the (in this case not needed) code for data preparation!**
+
+For more details about how to create a dataset see the following chapters.
 
 # How to use the code to create a new dataset from measurements?
 This section explains how to use the code in this repo for creating a dataset usable in PyTorch from measurements. Further details about the code can be found in later chapters.
