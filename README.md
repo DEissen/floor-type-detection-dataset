@@ -1,5 +1,5 @@
 # The Floor-Type-Detection-Dataset (FTDD) repository
-Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded with the Unitree Go1 Edu robot dog by using the code from [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu) repository. The program is split in two parts:
+Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded with the [Unitree Go1 Edu robot dog](https://www.unitree.com/go1/) by using the code from [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1) repository. The program is split in two parts:
 1. Data preparation: Prepare raw measurement data to be easily loadable by a custom PyTorch dataset class (including unification of timestamps, window creation for timeseries data, ...)
 2. Dataset creation: Create a PyTorch dataset with configurable data preprocessing (image cropping, ...) data selection (usage of subset of sensors possible) and failure case creation (by modifying the data)
 
@@ -8,7 +8,7 @@ For more details about how to create a dataset see the following chapters.
 # How to use the code to create a new dataset from measurements?
 This section explains how to use the code in this repo for creating a dataset usable in PyTorch from measurements. Further details about the code can be found in later chapters.
 ### Prerequisites
-1. Measurements with the Unitree Go1 by using the code from [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu) are available
+1. Measurements with the Unitree Go1 by using the code from [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1) are available
 
 ### Data preparation
 #### Solution to create a single dataset from multiple measurements (currently 'active' at lines 227 - 258 in *data_preparation_main.py*)
