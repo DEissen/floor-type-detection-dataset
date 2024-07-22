@@ -1,5 +1,5 @@
 # The Floor-Type-Detection-Dataset (FTDD) repository
-Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded with the (Unitree Go1 Edu robot dog)[https://www.unitree.com/go1/] by using the code from [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1) repository.
+Repository for the floor type detection dataset (FTDD/ FTD Dataset) recorded with the [Unitree Go1 Edu robot dog](https://www.unitree.com/go1/) by using the code from [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1) repository.
 
 # How to use the FTDDataset class
 1. Import the class FloorTypeDetectionDataset() class from file ./FTDDataset.py
