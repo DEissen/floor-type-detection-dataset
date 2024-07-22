@@ -8,13 +8,13 @@ FTDD -  Version 2.0 \
 
 # How to use FTD dataset?
 **Note: FTDD can only be used with PyTorch!** \
-In order to use the FTD dataset, you have to use the FloorTypeDetectionDataset() class from file ./FTDDataset.py in the [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset) repository. Thus it's recommended to copy the repo into your repository as a submodule. In order to use the FloorTypeDetectionDataset() class, you have to provide following parameters:
+In order to use the FTD dataset, you have to use the FloorTypeDetectionDataset() class from file ./FTDDataset.py in the [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset) repository. Thus it's recommended to copy the repo into your repository as a submodule. In order to use the FloorTypeDetectionDataset() class, you have to provide following parameters:
 - **root_dir (str):** Path to prepared dataset
 - **sensors (list):** List of all sensors which shall be considered
 - **run_path (str):** Run path to previous run from where config can be loaded. If run_path == "" the default config from the repo will be used.
 - [optional] **create_faulty_data (bool):** Default = False. Select whether faulty data shall be created or not. No data modification will happen, if create_faulty_data == False.
 
-An example of how to use the class is directly provided at the end of the ./FTDDataset.py file in the [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset) repository.
+An example of how to use the class is directly provided at the end of the ./FTDDataset.py file in the [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset) repository.
 
 
 # Folder structure of FTDD
@@ -48,7 +48,7 @@ Nonetheless there is more to see on the images of some of the stereocameras (Hea
 ### **Q: How many instances are there in total (of each type, if appropriate)?** 
 A: There are TODO instances in total.
 ### **Q: Does the dataset contain all possible instances or is it a sample (not necessarily random) of instances from a larger set?** 
-A: The dataset contains all possible instances. Still it is possible to only select a subset of the complete set when loading the dataset with the FloorTypeDetectionDataset() class provided in the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset).
+A: The dataset contains all possible instances. Still it is possible to only select a subset of the complete set when loading the dataset with the FloorTypeDetectionDataset() class provided in the repository [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset).
 ### **Q: What data does each instance consist of?** 
 A: Each instance (one instance = data of all sensors and cameras for one timestamp). Consists of images of the different stereocameras and timeseries measurement of the other present sensors. The following cameras and sensors are present in this version:
 - Accelerometer
@@ -85,14 +85,14 @@ A: No, the dataset does not contain such data.
 ## Collection Process
 
 ### **Q: How was the data associated with each instance acquired?** 
-A:  The data was collected using the ./main.py program of the repository [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu). The instances/ timestamps as present in the dataset were then created during data preparation by using the program ./data_preparation_main.py of the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset).
+A:  The data was collected using the ./main.py program of the repository [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1). The instances/ timestamps as present in the dataset were then created during data preparation by using the program ./data_preparation_main.py of the repository [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset).
 ### **Q: What mechanisms or procedures were used to collect the data (e.g., hardware apparatuses or sensors, manual human curation, software programs, software APIs)?** 
 A: The data was collected with the [Unitree Go1](https://www.unitree.com/en/go1/) robot dog which was controlled by the remote control by a human. \
-The data was collected using the ./main.py program of the repository [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu).
-- TODO Used version: [Version_2.0](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu/releases/tag/Version_2.0)
+The data was collected using the ./main.py program of the repository [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1).
+- TODO Used version: [Version_2.0](https://github.com/DEissen/data-collection-unitree-go1/releases/tag/Version_2.0)
 
-Finally the data was prepared using the program ./data_preparation_main.py of the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset).
-- TODO Used version: [FTDD_2.0](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset/releases/tag/FTDD_2.0)
+Finally the data was prepared using the program ./data_preparation_main.py of the repository [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset).
+- TODO Used version: [FTDD_2.0](https://github.com/DEissen/floor-type-detection-dataset/releases/tag/FTDD_2.0)
 ### **Q: If the dataset is a sample from a larger set, what was the sampling strategy (e.g., deterministic, probabilistic with specific sampling probabilities)?** 
 A:  The dataset is not a sample from a larger set.
 ### **Q: Who was involved in the data collection process (e.g., students, crowdworkers, contractors) and how were they compensated (e.g., how much were crowdworkers paid)?** 
@@ -102,7 +102,7 @@ A: The data was collected over several measurements at multiple days.
 
 ## Preprocessing/ cleaning/ labeling
 ### **Q: Was any preprocessing/ cleaning/ labeling of the data done (e.g., discretization or bucketing, tokenization, part-of-speech tagging, SIFT feature extraction, removal of instances, processing of missing values)?** 
-A: Yes, the data was prepared/ preprocessed by using the the program ./data_preparation_main.py of the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset). Steps done during data preparation:
+A: Yes, the data was prepared/ preprocessed by using the the program ./data_preparation_main.py of the repository [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset). Steps done during data preparation:
 - Downsampling of timeseries data to 50 Hz signal (captured with ~100 Hz)
 - [optional] Z Score normalization of the downsampled timeseries data
 - Window creation for timeseries measurements
@@ -112,14 +112,14 @@ A: Yes, the data was prepared/ preprocessed by using the the program ./data_prep
 A: The raw data might be still available if it was separately stored. The following measurements are included in this version:
 - TODO measurement_DD_MM__HH_mm
 ### **Q: Is the software that was used to preprocess/ clean/ label the data available?** 
-A: Yes, the SW can be found in the repository [Floor-Type-Detection-Dataset](https://github.tik.uni-stuttgart.de/ac136427/Floor-Type-Detection-Dataset). Details about the used version can be found in question *"What mechanisms or procedures were used to collect the data (e.g., hardware apparatuses or sensors, manual human curation, software programs, software APIs)?"*.
+A: Yes, the SW can be found in the repository [floor-type-detection-dataset](https://github.com/DEissen/floor-type-detection-dataset). Details about the used version can be found in question *"What mechanisms or procedures were used to collect the data (e.g., hardware apparatuses or sensors, manual human curation, software programs, software APIs)?"*.
 
 ## Uses
 ### **Q: Has the dataset been used for any tasks already?** 
 A: The dataset was used for the master thesis MA 3606 at the IAS Institute from University Stuttgart.
 ### **Q: What (other) tasks could the dataset be used for?** 
 A: There are no other tasks which the dataset could be used for directly, as no further information besides the floor type was stored for each measurement. Of course new labels could created for each instance manually based on what can be seen on the images (e.g. object detection, image segmentation, weather classification, ...). Still this is not recommended as it would need a lot of time to manually create the new labels. \
-*Note:* New data can be collected by using the SW available in the repository [Unitree-Go1-Edu](https://github.tik.uni-stuttgart.de/ac136427/Unitree-Go1-Edu) where new labels can be directly captured during the measurement with small modifications on the SW. This might be faster than creating new labels manually.
+*Note:* New data can be collected by using the SW available in the repository [data-collection-unitree-go1](https://github.com/DEissen/data-collection-unitree-go1) where new labels can be directly captured during the measurement with small modifications on the SW. This might be faster than creating new labels manually.
 ### **Q: Is there anything about the composition of the dataset or the way it was collected and preprocessed/cleaned/labeled that might impact future uses?** 
 A: There was no additional information stored besides the labels about the surrounding conditions. This makes it hard to create new labels for different uses.
 
