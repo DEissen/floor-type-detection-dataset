@@ -37,6 +37,7 @@ Contains files for a prototype of correction of fisheye perspective. Not used an
 This directory contains some example data, so you can run *data_preparation_main.py* by default to get an idea of how to use it.
 - *example_data.png*: Image showing example data for README.md
 - *FTDDataset.py*: File containing the FTDDataset() class including an example of how to use it at the end of the file
+- *LICENSE.txt*: License file
 - *README.md*: The file you are reading right now :)
 - *requirements.txt*: File which lists the used python packages
 
