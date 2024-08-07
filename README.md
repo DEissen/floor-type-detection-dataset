@@ -88,6 +88,7 @@ This module contains files with different visualization functions for different 
 - *datasheet.md*: Template for the datasheet which will be copied to a prepared dataset (including TODO's for points which must be updated)
 - *example_data.png*: Image showing example data for README.md
 - *FTDDataset.py*: File containing the FTDDataset() class including an example of how to use it at the end of the file
+- *LICENSE.txt*: License file
 - *README.md*: The file you are reading right now :)
 - *requirements.txt*: File which lists the used python packages
 - *test.ipynb*: Jupyter Notebook for testing of functions which already contains different imports for testing
